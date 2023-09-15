@@ -1,0 +1,637 @@
+\documentclass{beamer}
+
+% Configure the Beamer theme
+\usetheme{Berlin}
+
+% Remove navigation symbols
+\beamertemplatenavigationsymbolsempty
+
+% Support for interactive hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    linkcolor=
+}
+
+% Better font specification
+\usepackage{fontspec}
+
+% Encode mathematical symbols using Unicode characters
+\usepackage{unicode-math}
+
+% Set-builder notation
+\usepackage{braket}
+
+% Useful math commands
+\usepackage{amsmath}
+% Support for custom theorem environments
+\usepackage{amsthm}
+
+% Environment for theorems
+\newtheorem*{theorem*}{Theorem}
+
+\theoremstyle{definition}
+
+% Environment for definitions
+\newtheorem*{definition*}{Definition}
+
+% Advanced math commands
+\usepackage{mathtools}
+
+% Load a file which defines additional math commands
+\input{commands}
+
+% Commands for footnote customization
+\usepackage[symbol]{footmisc}
+
+% Use footnotes with customizable symbols
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\AtBeginSection[]{
+    \begin{frame}
+        \vfill
+        \centering
+        \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+            \usebeamerfont{title}\insertsectionhead\par%
+        \end{beamercolorbox}
+        \vfill
+    \end{frame}
+}
+
+\title{Mathematical models of machine learning}
+\author{Gabriel Majeri}
+\date{September 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+\begin{frame}
+\frametitle{Context}
+
+Artificial intelligence is an interdisciplinary field with the ultimate goal of constructing machines that \emph{think}.
+% \\[1em]
+
+% Considering the huge amount of implicit and explicit knowledge required for many tasks, since the 1980's the field has focused on algorithms which are able to \emph{learn} by themselves from data/experience.
+\end{frame}
+
+% \begin{frame}
+% \frametitle{Context}
+
+% The field got started in the 1950's, soon after the invention of the first computers. Impressive practical results were obtained starting in the 2010's, after advances in computing power made it possible to process large amounts of data.
+% \end{frame}
+
+\begin{frame}
+\frametitle{Motivation}
+
+What's the issue with the current approaches to artificial intelligence?
+
+\begin{itemize}
+    \item Human brain: 85 billion neurons
+    \item GPT-3\footnote{The large language model behind ChatGPT}: 180 billion parameters
+\end{itemize}
+
+Recent models are on the same order of magnitude as or even larger than biological brains, yet their performance is much worse.
+\end{frame}
+
+\begin{frame}
+\frametitle{My thesis}
+
+\begin{block}{Thesis}
+The inefficiency of current AI models is due to the inaccuracy of the underlying theoretical models. \\[1em]
+
+Research to develop new formal models of cognition and learning will be essential in order to overcome actual limitations.
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{Structure of thesis}
+
+The dissertation is divided into several chapters:
+\begin{itemize}
+    \item a review of some of the existing theoretical frameworks for learning;
+    \item a discussion of several popular learning algorithms, all based on sound mathematical principles;
+    \item a selection of promising directions for future research.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Approaches to AI}
+
+Historically, two approaches have been tried in order to achieve artificial intelligence:
+\begin{itemize}
+    \item \emph{Symbolic} artificial intelligence aims to explicitly program computers to be able to reason logically using symbols and solve problems.
+    \item \emph{Sub-symbolic} artificial intelligence aims to create programs capable of learning how to solve problems on their own, using existing data or by interacting with the environment.
+\end{itemize}
+\end{frame}
+
+\section{Theories of Learning}
+
+\begin{frame}
+\frametitle{Learning Paradigms}
+
+Modern literature distinguishes several different contexts for the problem of learning:
+\begin{itemize}
+    \item Supervised learning
+    \item Unsupervised learning
+    \item Reinforcement learning
+    \item \(\dots\)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Learning Paradigms}
+
+For the purpose of this presentation, we will focus on \emph{supervised learning}, which is also one of the best theoretically-understood contexts.\\[1em]
+
+Supervised learning means \emph{learning by example}: we are given a sample of input data and the corresponding outputs and we must learn to correctly extrapolate to novel, previously-unseen inputs.    
+\end{frame}
+
+\begin{frame}
+\frametitle{Empirical Risk Minimization}
+
+Supervised learning can be formalized as a problem of \emph{function estimation}: we want to determine the ``rule'' \(f(x) = y\) given some examples \(f(x_1) = y_1\), \(\dots\), \(f(x_n) = y_n\).
+\end{frame}
+
+\begin{frame}
+\frametitle{Empirical Risk Minimization}
+
+Context:
+\begin{itemize}
+    \item input domain \(\symcal{X}\);
+    \item target space \(\symcal{Y}\), equipped with a distance \(L \colon \symcal{Y} \times \symcal{Y} \to \reals\), usually called the \emph{loss function};
+    \item joint probability distribution of the data, \(P(x, y)\), on \(\symcal{X} \times \symcal{Y}\);
+    \item set of functions \(H = \Set{ h \colon \symcal{X} \to \symcal{Y} }\), called the \emph{hypothesis space}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Empirical Risk Minimization}
+    
+\begin{definition*}
+The \emph{true risk} or \emph{true error} associated with a hypothesis is 
+\[
+    R(h) = \expectedvalue_{(X, Y) \sim P} \left[L\left(h(X), Y\right)\right] = \int L\left(h(x), y\right) \diff \, P(x, y)  
+\]
+\end{definition*}
+
+We want to find
+\[
+    h^* = \arginf_{h \, \in \, H} R(h)
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Empirical Risk Minimization}
+
+In practice, we do not know the true distribution of the data \(P(x, y)\), so we resort to estimate it empirically.
+
+\begin{definition*}
+Given a sample of labeled examples \(\left(x_1, y_1\right), \dots, \left(x_n, y_n\right)\), the associated \emph{empirical risk} is
+\[
+    \widehat{R}(h) = \frac{1}{n} \sum_{i = 1}^{n} L\left(h(x_i), y_i\right)
+\]
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Empirical Risk Minimization}
+
+The principle of \emph{empirical risk minimization} is that we should select the hypothesis minimizing the empirical risk:
+\[
+    \widehat{h} = \arginf_{h \in H} \widehat{R}(h)
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Generalization Error}
+
+The problem is: how can we be certain that the hypothesis minimizing the empirical risk will also minimize the true risk, i.e.\ that the \emph{generalization error}
+\[
+    R\left(\widehat{h}\right) - R\left(h^*\right)
+\]
+is close to zero?
+\end{frame}
+
+\begin{frame}
+\frametitle{Vapnik-Chervonenkis Theory}
+
+Vapnik and Chervonenkis were two Russian mathematicians who initially sought to improve the \emph{law of large numbers} in order to obtain uniform bounds on the relative frequencies of various events.
+\end{frame}
+
+\begin{frame}
+\frametitle{Vapnik-Chervonenkis Theory}
+
+Context:
+\begin{itemize}
+    \item \(\left(\Omega, \symcal{A}, \probability\right)\) a probability space;
+    \item \(X \colon \Omega \to \reals\) a random variable; \(X^n = (X_1, \dots, X_n)\) a sample of i.i.d.\ copies of \(X\);
+    \item \(C \subseteq \borelsets{\reals}\) a collection of measurable sets.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Vapnik-Chervonenkis Theory}
+
+\begin{definition*}
+The \emph{relative frequency} of an event \(E\) is
+\[
+    \nu_{E} = \probability_{X} (E) = \probability\left(X^{-1}(E)\right)
+\]
+\end{definition*}
+
+\begin{definition*}
+The \emph{relative frequency} of an event \(E \in C\) with respect to a sample of size \(n\) is the random variable
+\[
+    \nu_{E, \, n} = \frac{1}{n} \sum_{i = 1}^{n} \symbb{1}_{X_i \, \in \, E}
+\]
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Vapnik-Chervonenkis Theory}
+
+\begin{definition*}
+The \emph{\(n\)-th shattering coefficient of \(C\)} is the maximum number of different subsets in which a sample of \(n\) points can be divided by intersection with events from the class \(C\). More precisely,
+\[
+    S \left(C, n\right) = \max_{\left(x_1, \dots, x_n\right) \in \reals^n} \abs{\Set{ \Set{x_1, \dots, x_n} \cap E | E \in C }}
+\]
+\end{definition*}    
+\end{frame}
+
+\begin{frame}
+\frametitle{Vapnik-Chervonenkis Theory}
+
+Examples:
+\begin{itemize}
+    \item Let \(C = \Set{ \left(-\infty, t\right] | t \in \reals }\). Then \(S(C, n) = n + 1\).
+
+    \item Let \(C = \Set{ U \subset \reals | U \text{ open} }\). Then \(S(C, n) = 2^n\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Vapnik-Chervonenkis Theory}
+
+\begin{theorem*}[Vapnik \& Chervonenkis, 1971]
+With the previous notations, the following inequality holds
+\[
+    \probability\left(\sup_{E \in C} \, \abs{\, \nu_{E, \, n} - \nu_E} > \varepsilon\right) \leq 4 \cdot S(C, 2 n) \cdot e^{-n \varepsilon^2 / 8}
+\]
+for any \(\varepsilon > 0\).
+\end{theorem*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Probably Approximately Correct Learning}
+
+VC theory can tell whether a model will generalize, but what about how \emph{efficiently} can such a model be trained?
+\end{frame}
+
+\begin{frame}
+\frametitle{Probably Approximately Correct Learning}
+
+Context: extend the one from empirical risk minimization with the following two new terms:
+
+\begin{definition*}
+A \emph{concept} is a function \(c \colon \symcal{X} \to \Set{ 0, 1 }\). It can also be a subset \(U \subset \symcal{X}\), in which case it is identified with its characteristic function: \(c_U = \symbb{1}_U\).
+\end{definition*}
+
+\begin{definition*}
+A \emph{concept class} \(C\) is a set of concepts.
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Probably Approximately Correct Learning}
+
+\begin{definition*}
+A concept class \(C\) is \emph{PAC-learnable} if there exists an algorithm \(A\) such that, for all concepts \(c \in C\), \(\varepsilon > 0\), \(\delta > 0\) and all distributions \(D\), we have
+\[
+    \probability_{D} \left(R\left(h\right) \leq \varepsilon\right) \geq 1 - \delta
+\]
+where \(h\) is the hypothesis selected by the algorithm given a sample \(S\) of size \(m = P\left(1/\varepsilon, 1/\delta\right)\), for some fixed polynomial \(P\).
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Probably Approximately Correct Learning}
+
+What if, in practice, we are unable to find an efficient algorithm for a concept class?
+\end{frame}
+
+\begin{frame}
+\frametitle{Weak PAC-learnability}
+
+\begin{definition*}
+A concept class \(C\) is \emph{\(\gamma\)-weakly PAC-learnable} for some \(\gamma > 0\) if there exists an algorithm \(A\) such that, for all concepts \(c \in C\), \(\delta > 0\) and all distributions \(D\), we have
+\[
+    \probability_D \left(R(h) < 0.5 - \gamma\right) \geq 1 - \delta
+\]
+where \(h\) is the hypothesis selected by the algorithm given a sample \(S\) of size \(m = P(1/\delta)\), for some fixed polynomial \(P\).
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Boosting}
+
+\begin{theorem*}[Schapire, 1990]
+Every weakly PAC-learnable concept class is also strongly PAC-learnable.
+\end{theorem*}
+
+This result led to the development of \emph{boosting}, a method by which an ensemble of weak learners can be used to construct a strong learner.
+\end{frame}
+
+\section{Learning Algorithms}
+
+\begin{frame}
+\frametitle{Linear Regression}
+
+Suppose that we have a function \(\varphi \colon \symcal{X} \to \reals^d\), called the \emph{feature map}, which provides an embedding of our data into Euclidean space. We will work with the following hypothesis set of \emph{linear maps}:
+\[
+    H = \Set{ h \colon \reals^d \to \reals | h(x) = a x + b, a \in \reals^d, b \in \reals }  
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Linear Regression}
+
+We can encode a hypothesis \(h(x) = a x + b\) and the training samples \(\left(x_1, y_1\right)\), \(\dots\), \(\left(x_n, y_n\right)\) using matrices:
+\begin{gather*}
+    W = \begin{pmatrix}
+        a_1 \\
+        \vdots \\
+        a_d \\
+        b
+    \end{pmatrix} \in \reals^{d + 1}
+    \quad
+    X = \begin{pmatrix}
+        \varphi\left(x_1\right) & \cdots & \varphi\left(x_n\right) \\
+        1 & \cdots & 1
+    \end{pmatrix} \in \reals^{(d + 1) \times n}
+    \\
+    Y = \begin{pmatrix}
+        y_1 \\
+        \vdots \\
+        y_n
+    \end{pmatrix} \in \reals^{n}
+\end{gather*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Linear Regression}
+
+After some calculations, the empirical risk functional becomes
+\[
+    \widehat{R}(W) = \frac{1}{n} \norm{X^T W - Y}^2
+\]
+The mapping \(W \mapsto \widehat{R}(W)\) is smooth and convex, hence its minimum can be found using analysis.
+\end{frame}
+
+\begin{frame}
+\frametitle{Support Vector Machines}
+
+A machine learning method which evolved out of Vapnik's and Chervonenkis' study of the generalization problem is the \emph{support vector machine}.
+\end{frame}
+
+\begin{frame}
+\frametitle{Support Vector Machines}
+
+For a binary classification problem, an SVM aims to find the \emph{maximum-margin hyperplane}, i.e.\ the hyperplane which separates the samples while maintaining the maximum possible distance between the two classes.
+\end{frame}
+
+\begin{frame}
+\frametitle{Support Vector Machines}
+
+An (affine) hyperplane in Euclidean space is given by the equation \(w \cdot x - b = 0\), where \(w\) is a vector normal to the hyperplane and \(b\) is the offset of the hyperplane from the origin of the coordinate system.
+\end{frame}
+
+\begin{frame}
+\frametitle{Support Vector Machines}
+
+Assuming the data is linearly separable and normalized, we can make it so that all of the samples from one class satisfy
+\[
+    w \cdot x - b \geq +1
+\]
+and the others
+\[
+    w \cdot x - b \leq -1
+\]
+The hyperplanes \(w \cdot x - b = +1\) and \(w \cdot x - b = -1\) are called the \emph{separating hyperplanes} and the aim is to maximize the distance (\emph{margin}) between them.
+\end{frame}
+
+\begin{frame}
+\frametitle{Support Vector Machines}
+
+The margin can be shown to depend on \(\norm{w}\). The optimization problem corresponding to the training of a support vector machine is:
+\begin{align*}
+    \text{minimize } &\norm{w}^2 \\
+    \text{subject to } w x_i - b &\geq y_i, \forall i = \overline{1, n}
+\end{align*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Kernel Trick}
+
+SVMs are \emph{linear} models, but they admit a powerful modification. \\[1em]
+
+The only operations we performed on the input data is computing \emph{distances} and \emph{angles} between vectors. Embedding the input space \(\symcal{X}\) into a higher-dimensional (possibly even infinite-dimensional) vector space \(\Tilde{\symcal{X}}\) can turn previously inseparable classes into linearly separable ones.
+\end{frame}
+
+\begin{frame}
+\frametitle{Kernel Trick}
+
+The essence of the \emph{kernel trick} is that we do not have to compute the embedding of \(\symcal{X}\) into \(\Tilde{\symcal{X}}\) to run the algorithm; it is enough to use the associated \emph{positive-definite kernel} \(K\) several times, which is often more tractable in practice.
+\end{frame}
+
+\section{Further Developments}
+
+\begin{frame}
+\frametitle{Generative Models}
+
+Modern research has shifted the view on supervised learning from \emph{function estimation} to a \emph{probability distribution estimation}. Therefore, new tools for working with distributions have proven very useful.
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimal Transport}
+
+Transportation theory studies the problem of how to most efficiently move a mass of resources from point A to point B. The mathematical analysis of this problem goes back to the XVIII-th century.
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimal Transport}
+
+Context:
+\begin{itemize}
+    \item \(\left(X, \mu\right)\) and \(\left(Y, \nu\right)\) two probability spaces;
+    \item \(c \colon X \times Y \to \reals_{+}\) a Borel-measurable \emph{cost function}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimal Transport}
+
+\begin{definition*}
+A \emph{transport plan} is a measurable map \(T \colon X \to Y\) for which \(T_{*} \mu = \eta\), i.e.\ it \emph{preserves mass}.
+\end{definition*}
+
+\begin{definition*}
+The \emph{total transporation cost} of a transport plan \(T\) is the value of the integral
+\[
+    C(T) = \int_{X} \, c\left(x, T(x)\right) \diff \mu(x)
+\]
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimal Transport}
+
+\begin{definition*}
+An \emph{optimal transport plan} is a transport plan \(T\) which minimizes the \emph{total transportation cost}.
+\end{definition*}
+
+The problem isn't usually studied using this (classical) formulation, since it's not possible to derive the existence of solutions for it. Instead, a more modern approach has been initiated by the Soviet mathematician L.~Kantorovich.
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimal Transport --- Kantorovich Formulation}
+
+\begin{definition*}
+A \emph{coupling} is a probability measure \(\gamma\) on \(X \times Y\) whose marginal probability on \(X\) is \(\mu\) and on \(Y\) is \(\nu\). More precisely,
+\begin{align*}
+    \int_{Y} \gamma(x, y) \diff y &= \mu(x) \\
+    \int_{X} \gamma(x, y) \diff x &= \nu(y)
+\end{align*}
+The set of all couplings is denoted by \(\Gamma(\mu, \nu)\).
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimal Transport --- Kantorovich Formulation}
+
+In Kantorovich's formulation, the optimal transport problem is restated as finding the coupling which minimizes the total cost:
+\[
+    \arginf_{\gamma \in \Gamma(\mu, \nu)} \int_{X \times Y} c(x, y) \diff \gamma(x, y)
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Wasserstein Distance}
+
+One of the best ways to measure distances between probability distributions is using Wasserstein distances.
+
+\begin{definition*}
+The \emph{Wasserstein \(p\)-distance} between two probability measures \(\mu\) and \(\nu\) is
+\begin{align*}
+    W_p (\mu, \nu) &= \left(\inf_{\gamma \in \Gamma(\mu, \nu)} \expectedvalue_\gamma \left[\norm{x - y}^p\right]\right)^{1/p} \\
+    &= \left(\inf_{\gamma \in \Gamma(\mu, \nu)} \int \norm{x - y}^p \diff \probability_{\gamma} (x, y) \right)^{1/p}
+\end{align*}
+\end{definition*}  
+\end{frame}
+
+\begin{frame}
+\frametitle{Information Geometry}
+
+Most families of probability distributions used in statistics are \emph{parametric}. For example, the \emph{normal distribution} \(\normal{\mu}{\sigma^2}\) is given by
+\[
+    p_{\symcal{N}} \left(x; \mu, \sigma^2\right) = \frac{1}{\sqrt{2 \pi} \sigma} \cdot e^{- \frac{(x - \mu)^2}{2 \sigma^2}}
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Information Geometry}
+
+Let \(\theta = \left(\mu, \sigma^2\right)\). The set of all valid \(\theta\)s is \(\reals \times \left(0, +\infty\right)\), the upper half-plane in \(\reals^2\). Can this set be endowed with some additional structure?
+\end{frame}
+
+\begin{frame}
+\frametitle{Likelihoods}
+
+\begin{definition*}
+The \emph{likelihood function} \(\symcal{L}\) is
+\[
+    \symcal{L} \left(\theta\right) = p\left(x; \theta\right)
+\]
+(in other words, the joint probability distribution \(p\left(x; \theta\right)\), viewed as a function of \(\theta\), not of \(x\))
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Maximum Likelihood Estimation}
+
+In practice, we are often given a sample of points \(x_1, \dots, x_n\) and we want to find the parameter \(\theta\) which maximizes the likelihood of this sample. This is the principle of \emph{maximum likelihood estimation}.
+\end{frame}
+
+\begin{frame}
+\frametitle{Scores}
+
+Assuming that we are working with a smooth parametric family of distributions, we can introduce the \emph{score function} to make the optimization process easier.
+
+\begin{definition*}
+The \emph{score} is the gradient of the logarithm of the likelihood function, i.e.\
+\[
+    s(\theta) = \nabla_{\theta} (\log \symcal{L}) (\theta)
+\]
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Fisher Information Matrix}
+
+We now introduce the \emph{Fisher information matrix}, which is the variance of the score function.
+
+\begin{definition*}
+The \emph{Fisher information matrix} for a parameterized probability distribution is
+\[
+    \left[I\left(\theta\right)\right]_{i, j} = \expectedvalue_{\theta} \left[\left(s\left(\theta_i\right)\right) \cdot \left(s\left(\theta_j\right)\right)\right]
+\]
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Statistical Manifolds}
+
+\begin{definition*}
+A \emph{statistical manifold} is a differentiable manifold where the individual points correspond to probability distributions from a parametric family.
+\end{definition*}
+
+It can be shown that the Fisher information matrix endows the corresponding statistical manifold with a \emph{Riemannian metric}. This observation forms the basis of information geometry.
+\end{frame}
+
+\begin{frame}
+\frametitle{Natural Gradient}
+
+Information geometry can lead to powerful results in the optimization of parametric models.
+
+\begin{definition*}
+Let \(L \colon M \to \reals\) be a differentiable function defined on a Riemannian manifold \(M^n\). The \emph{natural gradient} of \(L\) is given by
+\[
+    \Tilde{\nabla} L (w) = G^{-1} (w) \nabla L (w)
+\]
+where \(G^{-1} = \left(g^{i j}\right)\) is the inverse metric tensor and \(\nabla L\) is the usual (Euclidean) gradient, computed by viewing the manifold as embedded in \(\reals^n\).
+\end{definition*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Natural Gradient}
+
+Taking \(M\) to be a statistical manifold for our family of models and \(L\) the loss function, we obtain the \emph{natural gradient descent} optimization algorithm.
+\end{frame}
+
+\section{Conclusions}
+
+\begin{frame}
+\frametitle{Conclusions}
+
+While the current trend in the field is to focus on empirical results and provide only \emph{a posteriori} explanations, there are many situations in the past where considerable progress has been made by instead improving the underlying theoretical models.
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusions}
+    \centering \Large
+    Thank you for your attention!
+\end{frame}
+
+\end{document}

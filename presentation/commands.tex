@@ -1,0 +1,74 @@
+%% Define some custom math commands
+
+\newcommand*{\naturals}{\symbb{N}}
+\newcommand*{\integers}{\symbb{Z}}
+\newcommand*{\reals}{\symbb{R}}
+\newcommand*{\complex}{\symbb{C}}
+
+\newcommand*{\borelsets}[1]{\symcal{B}\left(#1\right)}
+\newcommand*{\analyticsets}[1]{\symcal{A}\left(#1\right)}
+\newcommand*{\powerset}[1]{\symcal{P}\left(#1\right)}
+
+\newcommand*{\dual}{\vee}
+
+\newcommand*{\given}[2]{\left(#1\;\middle|\;#2\right)}
+\newcommand*{\probability}{\symbb{P}}
+\newcommand*{\expectedvalue}{\symbb{E}}
+\newcommand*{\variance}{\operatorname{Var}}
+\newcommand*{\covariance}{\operatorname{Cov}}
+
+\newcommand*{\bigO}{\symcal{O}}
+
+\DeclarePairedDelimiterX{\divergence}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+
+% Image of a function
+\DeclareMathOperator{\ima}{im}
+
+% Argument of minimum
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% Subspace spanned by a set of vectors
+\DeclareMathOperator{\Span}{span}
+
+% Trace of a matrix
+\DeclareMathOperator{\Tr}{tr}
+
+% Normal distribution
+\newcommand*{\normal}[2]{\symcal{N}\!\left(#1, #2\right)}
+
+% Use a roman (non-italic) letter `d` for the differential symbol in integrals
+% Code is based on https://tex.stackexchange.com/a/60546/263993
+\newcommand*{\diff}{\mathop{}\!\symrm{d}}
+
+% Scalar product of two vectors
+\newcommand*{\innerproduct}[2]{\left\langle #1, #2 \right\rangle}
+
+% Value of parameter which gives infimum of following expression
+% Based on https://tex.stackexchange.com/a/5255/263993
+\DeclareMathOperator*{\arginf}{arg\,inf}
+
+% Commands for absolute value and norm
+% Based on https://tex.stackexchange.com/a/43009/263993
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+% Switch the behavior of \abs* and \norm*, such that \abs and \norm will automatically resize the corresponding vertical bars.
+\makeatletter
+    \let\oldabs\abs
+    \def\abs{\@ifstar{\oldabs}{\oldabs*}}
+    %
+    \let\oldnorm\norm
+    \def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+% Support for dual-language abstract
+% Bazat pe https://tex.stackexchange.com/a/70818
+\newenvironment{abstractpage}
+  {\cleardoublepage\vspace*{\fill}\thispagestyle{empty}}
+  {\vfill\cleardoublepage}
+\renewenvironment{abstract}[1]
+  {\bigskip\selectlanguage{#1}%
+   \begin{center}\bfseries\abstractname\end{center}}
+  {\par\bigskip}
