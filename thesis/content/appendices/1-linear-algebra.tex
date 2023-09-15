@@ -1,0 +1,77 @@
+\chapter{Linear Algebra}
+
+A very good introduction to linear algebra is the book by Axler \cite{Axler2014}. A great overview is the series of videos by Grant Sanderson \cite{3Blue1Brown_EssenceOfLinearAlgebra}.
+
+\begin{definition}[Vector space]
+A \emph{vector space} over \(\reals\) is a set \(V\) equipped with a binary operation \(+\) and a multiplication by elements from \(\reals\), such that the following hold:
+\begin{itemize}
+    \item Associativity: \(\left(v_1 + v_2\right) + v_3 = v_1 + \left(v_2 + v_3\right)\), for all \(v_1, v_2, v_3 \in V\);
+    \item Commutativity: \(u + v = v + u\), for all \(u, v \in V\);
+    \item Neutral element for vector addition: there exists a \(0 \in V\) such that \(0 + v = v + 0 = v\), for all \(v \in V\);
+    \item Additive inverse: for every \(v \in V\) there exists a vector \(-v \in V\) such that \(v + (-v) = 0\);
+    \item Neutral element for scalar multiplication: the identity of the field acts trivially: \(1 v = v\), for all \(v \in V\);
+    \item Scalar multiplication commutes with field multiplication: \(a (bv) = (ab) v\), for all \(a, b \in \reals\) and \(v \in V\);
+    \item Scalar multiplication distributes over vector addition: \(a \left(v_1 + v_2\right) = a v_1 + a v_2\), for all \(a \in \reals\) and \(v_1, v_2 \in V\);
+    \item Scalar multiplication distributes over field addition: \((a + b) v = a v + b v\), for all \(a, b \in \reals\) and \(v \in V\).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Vector subspace]
+A \emph{vector subspace} is a subset \(W \subseteq V\) if \(W\) is a vector space in itself, with the operations restricted from \(V\).
+\end{definition}
+
+\begin{remark*}
+The definition of a vector subspace amounts to checking that
+\begin{itemize}
+    \item \(w_1 + w_2 \in W\), for all \(w_1, w_2 \in W\);
+    \item \(a w \in W\), for all \(a \in \reals\) and \(w \in W\).
+\end{itemize}
+\end{remark*}
+
+\begin{definition}[Direct sum]
+The \emph{direct sum} of two vector subspaces \(W_1, W_2 \subseteq V\) with \(W_1 \cap W_2 = \Set{ 0 }\) is the set
+\[
+    W_1 \oplus W_2 = \Set{ w_1 + w_2 | w_1 \in W_1, w_2 \in W_2 }
+\]
+\end{definition}
+
+\begin{definition}[Convex set]
+\label{def:convex_set}
+
+A subset \(C\) of a vector space \(X\) is called \emph{convex} if, for any \(x, y \in C\) and \(r \in [0, 1]\), the point \(r x + (1 - r) y\) is also in \(C\).
+\end{definition}
+
+\begin{definition}[Linear map]
+A \emph{linear map} between two vector spaces \(V\), \(W\) is a function \(f \colon V \to W\) for which
+\[
+    f(\lambda_1 v_1 + \lambda_2 v_2) = \lambda_1 \, f(v_1) + \lambda_2 \, f(v_2)
+\]
+for all \(\lambda_1, \lambda_2 \in \reals\) and all \(v_1, v_2 \in V\).
+\end{definition}
+
+\begin{definition}[Kernel of a linear map]
+The \emph{kernel} of a linear map \(f \colon V \to W\) is the set
+\[
+    \ker f = \Set{ v \in V | f(v) = 0 }
+\]
+\end{definition}
+
+\begin{definition}[Image of a linear map]
+The \emph{image} of a linear map \(f \colon V \to W\) is the set
+\[
+    \ima f = \Set{ w \in W | w = f(v) \text{ for some } v \in V }
+\]
+\end{definition}
+
+\begin{proposition}
+The kernel and the image of a linear map are vector subspaces (of the domain and of the codomain respectively).
+\end{proposition}
+\begin{proof}
+Let \(v_1, v_2 \in \ker f\). Since \(f(v_1) = f(v_2) = 0\), we have that \(f(v_1 + v_2) = f(v_1) + f(v_2) = 0 + 0 = 0\). Furthermore, for any \(a \in \reals\), we have that \(f(a v_1) = a f(v_1) = a \cdot 0 = 0\).
+
+Let \(w_1, w_2 \in \ima f\). Take \(v_1, v_2 \in V\) such that \(f(v_1) = w_1\), \(f(v_2) = w_2\). Then \(w_1 + w_2 = f(v_1) + f(v_2) = f(v_1 + v_2)\), which shows that \(w_1 + w_2 \in \ima f\). Analogously, for any \(a \in \reals\), we have that \(a w_1 = a f(v_1) = f(a v_1)\), whence \(a w_1 \in \ima f\).
+\end{proof}
+
+\begin{definition}[Linear functional]
+A \emph{linear functional} or \emph{linear form} on a vector space \(V\) is a linear map \(\varphi \colon V \to \reals\) (with \(\reals\) viewed as a one-dimensional vector space over itself).
+\end{definition}

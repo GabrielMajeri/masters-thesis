@@ -1,0 +1,223 @@
+\chapter{Auxiliary Models}
+
+While not used to model the learning process \textit{per se}, this chapter presents a few mathematical theories which are very helpful in improving or understanding the learning algorithms described previously.
+
+% \section{Physics-Informed Neural Networks}
+
+% TODO: describe how imposing physical restrictions helps networks produce realistic solutions; maybe link to the philosophical "framing problem"
+
+\section{Optimal Transport}
+
+Transportation theory studies the problem of how to most efficiently move a mass of resources from point A to point B. The first mathematical analysis of the problem was given by Gaspard Monge in 1781 \cite{Monge1781}. A comprehensive, modern overview of the field is given in \cite{Villani2009}.
+
+In the following, let \(\left(X, \mu\right)\) and \(\left(Y, \nu\right)\) be two probability spaces and let \(c \colon X \times Y \to \reals_{+}\) be a Borel-measurable \emph{cost function}.
+
+\begin{definition}
+A \emph{transport plan} is a measurable map \(T \colon X \to Y\) for which \(T_{*} \mu = \eta\), i.e.\ it \emph{preserves mass}.
+\end{definition}
+
+\begin{definition}
+The \emph{total transporation cost} of a transport plan \(T\) is the value of the integral
+\[
+    C(T) = \int_{X} \, c\left(x, T(x)\right) \diff \mu(x)
+\]
+\end{definition}
+
+\begin{definition}
+An \emph{optimal transport plan} is a transport plan \(T\) which minimizes the \emph{total transportation cost}.
+\end{definition}
+
+In other words, an optimal transport plan satisfies
+\[
+    \arginf_{\substack{T \colon X \to Y \\ T_{*} \mu = \eta}} C(T)
+\]
+
+A priori, we have no reason to believe that a minimizer to the optimization problem exists. The Soviet mathematician Leonid Kantorovich gave a different formulation of the optimal transport problem, which made it much easier for him to prove the existence of at least one such map.
+
+\begin{definition}
+A \emph{coupling} is a probability measure \(\gamma\) on \(X \times Y\) whose marginal probability on \(X\) is \(\mu\) and on \(Y\) is \(\nu\). More precisely,
+\begin{align*}
+    \int_{Y} \gamma(x, y) \diff y &= \mu(x) \\
+    \int_{X} \gamma(x, y) \diff x &= \nu(y)
+\end{align*}
+The set of all couplings is denoted by \(\Gamma(\mu, \nu)\).
+\end{definition}
+
+In Kantorovich's formulation, the optimal transport problem is restated as finding the coupling which minimizes the total cost:
+\[
+    \arginf_{\gamma \in \Gamma(\mu, \nu)} \int_{X \times Y} c(x, y) \diff \gamma(x, y)
+\]
+With this reinterpretation of the problem, it is now possible to prove the existence of a solution. See, for example, Theorem 4.1 from \cite{Villani2009}. It relies on Prokhorov's theorem \cite{Prokhorov1956}, a result from measure theory which characterizes precompact sets in the weak topology of measures. % TODO
+
+\subsection{Wasserstein Distances}
+
+In the statistics literature, one of the most popular uses of optimal transport theory is the definition of the \emph{Wasserstein distance} between two probability distributions.
+
+\begin{definition}
+The \emph{Wasserstein \(p\)-distance} is
+\begin{align*}
+    W_p (\mu, \nu) &= \left(\inf_{\gamma \in \Gamma(\mu, \nu)} \expectedvalue_\gamma \left[\norm{x - y}^p\right]\right)^{1/p} \\
+    &= \left(\inf_{\gamma \in \Gamma(\mu, \nu)} \int \norm{x - y}^p \diff \probability_{\gamma} (x, y) \right)^{1/p}
+\end{align*}
+\end{definition}
+
+The Wasserstein distances are a natural choice of metric in the space of probability distributions, with many useful properties \cite{Panaretos2019}, making them attractive for certain machine learning applications \cite{Arjovsky2017}. Unfortunately, the computational cost associated with them is quite prohibited. The situation changed in 2013 with the introduction of \emph{Sinkhorn distances} by Cuturi \cite{Cuturi2013}. This related family of distances is obtained by including an \emph{entropic regularization term} in the optimal transport problem formulation.
+
+\begin{definition}
+Let \(p\) be a discrete probability distribution over \(i \in \Set{ 1, 2, \dots, d }\). The information-theoretical \emph{entropy} of \(p\) is
+\[
+    h(p) = - \sum_{i = 1}^{d} p_i \log p_i
+\]
+\end{definition}
+
+\begin{remark*}
+In the discrete case, a transport plan (joint probability distribution) between two discrete probability distributions \(p\) and \(q\) can be represented by a matrix \(T\), where the \(i\)th row sums to \(p_i\) and the \(j\)th column sums to \(q_j\).
+\end{remark*}
+
+\begin{definition}
+Let \(p\), \(q\) be two discrete probability distributions over \(\Set{ 1, 2, \dots, d }\) and \(T\) a transport plan between them. The \emph{entropy} of \(T\) is
+\[
+    h(T) = - \sum_{i, j = 1}^{d} T_{i, j} \log T_{i, j}
+\]
+\end{definition}
+
+\begin{definition}
+Let \(T\) and \(S\) be two transport plans. Their \emph{Kullback-Leibler divergence} is
+\[
+    \symrm{KL} \divergence{T}{S} = \sum_{i, j = 1}^{d} T_{i, \, j} \log \frac{T_{i, \, j}}{S_{i, \, j}}
+\]
+\end{definition}
+
+Cuturi's idea was to define a convex set in the space of couplings. Let \(U(p, q)\) denote the space of all couplings between \(p\) and \(q\). Then
+\[
+    U_{\alpha} (p, q) = \Set{ T \in U(p, q) | \symrm{KL} \divergence{T}{p q^{T}} \leq \alpha}
+\]
+
+\begin{definition}
+The \emph{Frobenius inner product} between two matrices \(A\) and \(B\) is
+\[
+    \innerproduct{A}{B} = \Tr\left(A^{T} B\right)
+\]
+\end{definition}
+
+\begin{definition}
+The \emph{Sinkhorn distance} between two discrete probabilty distributions \(p\) and \(q\) is
+\[
+    d_{M, \alpha} (p, q) = \inf_{T \in U_{\alpha} (p, q)} \innerproduct{T}{M}
+\]
+where \(M\) is a (pairwise) distance matrix.
+\end{definition}
+
+Cuturi proved that, as \(\alpha\) tends to \(+\infty\), \(d_{M, \alpha}\) tends to the optimal transport distance.
+
+% \begin{definition}
+% Let \(\mu_1, \dots, \mu_n\) be a set of probability distributions on the same space. The \emph{Wasserstein \(p\)-barycenter} is the probability distribution \(\beta\) which minimizes
+% \[
+%     \sum_{i = 1}^{n} W_p \left(\beta, \mu_i\right)
+% \]
+% \end{definition}
+
+
+% TODO: discuss how Wasserstein barycenters can be computed quickly
+
+% \section{Entropy-Regularized Optimal Transport}
+
+% TODO: talk about entropy-regularized optimal transport,
+% i.e. the addition of an entropy term to the Kantorovich formulation makes the corresponding minimization problem strongly convex
+
+% Unbalanced Minibatch Optimal Transport, applications to Domain Adaptation: \url{http://proceedings.mlr.press/v139/fatras21a/fatras21a.pdf}
+
+% Optimal Transport and Deep Learning : Learning from one another:
+% \url{https://theses.hal.science/tel-03544757/document}
+
+\section{Information Geometry}
+
+Information geometry aims to study the parameter spaces of various families of probability distributions and the natural geometric structure they can be endowed with.
+
+The first steps in discovering this connection were taken by C. Rao in 1945 \cite{Rao1945}. The Indian school of statistics was interested in finding the best way of defining a ``distance'' between various parameterized distributions. Rao observed that the Fisher information matrix (a concept we will define below) can be interpreted as a Riemannian metric. 
+
+Consider for example the family of normal distributions \(\normal{\mu}{\sigma^2}\), where \(\mu \in \reals\) is the mean and \(\sigma^2 \in \left[0, +\infty\right)\) is the variance. The corresponding parameterised probability density function is given by
+\[
+    p \left(x; \mu, \sigma^2\right) = \frac{1}{\sqrt{2 \pi} \sigma} \cdot e^{- \frac{(x - \mu)^2}{2 \sigma^2}}
+\]
+Denote the parameters of this distribution by \(\theta = \left(\mu, \sigma^2\right)\). The set of all \(\theta\)s, \(\reals \times \left[0, +\infty\right)\), could be identified with the upper half-plane in \(\reals^2\). However, this is not the only way we could parameterize this family of distributions. What we are going to show is that, in a certain sense, the geometry of the underlying space is the same, no matter which coordinate system we choose.
+
+Furthermore, information geometry also provides a better description for the \emph{distance} between two distributions within the same family. In the example above, as \(\sigma\) gets smaller, the normal distribution gets more tightly packed together, and the difference (in absolute value) between the means is much more pronounced.
+
+\subsection{Maximum Likelihood Estimation}
+
+Parameterized probability distributions arise naturally when doing statistical modelling \cite{Rossi2018}. The context of the problem is as follows: we are given a sequence of i.i.d.\ random variables \(X_1, \dots, X_n\) and we want to determine the distribution \(\Tilde{p}\) which they are sampled from. We use domain-specific knowledge to assert that the true probability distribution \(\Tilde{p}\) is contained within a parametric family of probability distributions \(p(\cdot; \theta)\), with \(\theta \in \reals^d\). We want to determine the value of \(\theta\) which gives us \(p(\cdot; \theta) = \Tilde{p}\) using only the observed values of the random variables.
+
+\begin{definition}
+The \emph{likelihood function} \(\symcal{L}\) is
+\[
+    \symcal{L} \left(\theta\right) = p\left(x; \theta\right)
+\]
+\end{definition}
+
+In other words, we simply took the joint probability distribution \(p\left(x; \theta\right)\) and viewed it as a function of \(\theta\), not of \(x\).
+
+When selecting a model by finding the maximum of the likelihood function, we are doing \emph{maximum likelihood estimation}. If the likelihood function is differentiable, one useful information we can obtain from it is the score.
+
+\begin{definition}
+The \emph{score} is the gradient of the logarithm of the likelihood function, i.e.\
+\[
+    s(\theta) = \nabla_{\theta} (\log \symcal{L}) (\theta)
+\]
+\end{definition}
+
+Besides determining the values of \(\theta\) for which the maximum likelihood is reached, we would also want to understand if the maximum is stable or not. The Fisher information matrix was introduced just for that.
+
+\begin{definition}
+The \emph{Fisher information matrix} for a parameterized probability distribution \(p(x; \theta)\) is
+\[
+    \left[I\left(\theta\right)\right]_{i, j} = \expectedvalue_{\theta} \left[\left(\frac{\partial}{\partial \theta_i} \log p\left(X; \theta\right)\right) \left(\frac{\partial}{\partial \theta_j} \log p\left(X; \theta\right)\right)\right]
+\]
+\end{definition}
+
+When the Fisher information matrix evaluated at a certain point \(\theta\) in the parameter space is ``big'', it means that (the absolute value of) the score is often high around that parameter.
+
+\begin{definition}
+A \emph{statistical manifold} is a differentiable manifold where the individual points correspond to probability distributions.
+\end{definition}
+
+It turns out that Fisher information matrix endows the corresponding statistical manifold with a \emph{Riemannian metric}. This observation forms the basis of information geometry \cite{Amari2016}.
+
+\subsection{Natural Gradient}
+
+In his paper from 1998 \cite{Amari1998}, Amari (one of the founders of information geometry) remarked that a neural network's parameter space could be viewed as a Riemannian manifold. Hence, to determine the direction of steepest descent, it wasn't enough to consider the gradient of the loss function with respect to the weights; it is necessary to also properly take into account the geometry of the underlying manifold. This gives rise to a family of optimization methods based on the concept of the \emph{natural gradient}.
+
+% TODO: read this overview on the use of Natural Policy Gradient methods in Reinforcement Learning https://arxiv.org/pdf/2209.01820.pdf
+
+% TODO: this https://arxiv.org/abs/1412.1193
+
+\begin{definition}
+Let \(L \colon M \to \reals\) be a differentiable function defined on a Riemannian manifold \(M^n\). The \emph{natural gradient} of \(L\) is given by
+\[
+    \Tilde{\nabla} L (w) = G^{-1} (w) \nabla L (w)
+\]
+where \(G^{-1} = \left(g^{i j}\right)\) is the inverse metric tensor and \(\nabla L\) is the usual (Euclidean) gradient, computed by viewing the manifold as embedded in \(\reals^n\).
+\end{definition}
+
+% gradient is given locally by
+% \[
+%     \nabla L (w) = \begin{pmatrix}
+%         \frac{\partial L}{w_1} \\
+%         \hdots \\
+%         \frac{\partial L}{w_n}
+%     \end{pmatrix}
+% \]
+
+\begin{theorem}[Amari]
+The direction of steepest descent of \(L\) (i.e. the direction in which the function \(L\) decreases the most) is given by \(-\Tilde{\nabla} L (w)\).
+\end{theorem}
+
+% \begin{proof}
+%     % TO DO
+% \end{proof}
+
+The natural gradient became very popular after it was adopted in the reinforcement learning domain as the \emph{natural policy gradient} \cite{Kakade2001}.
+
+% \subsubsection{Trust Region Policy Optimization}
+
+% Natural gradient methods become really popular once they started being applied to reinforcement learning.

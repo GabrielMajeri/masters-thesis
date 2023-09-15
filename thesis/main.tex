@@ -1,0 +1,185 @@
+\documentclass[12pt, a4paper]{report}
+
+% Support for commenting out blocks of code
+\usepackage{verbatim}
+
+% Better font specification support
+\usepackage{fontspec}
+
+\setmainfont{TeX Gyre Schola}
+
+% Multiple language support
+\usepackage{polyglossia}
+
+% Set English as the primary document language
+\setdefaultlanguage{english}
+\setotherlanguages{romanian}
+
+% Use biblatex to handle bibliographical references
+\usepackage[
+    maxbibnames=50,
+    sorting=none
+]{biblatex}
+
+\addbibresource{bibliography.bib}
+
+% Increase interline spacing to 1.5
+\usepackage{setspace}
+\onehalfspacing
+
+% Start new paragraphs by adding some vertical blank space, instead of indenting them
+\usepackage[parfill]{parskip}
+
+% Tools for changing the page's geometry
+\usepackage{geometry}
+
+% Graphics support
+\usepackage{graphicx}
+% Load images from the `images` directory
+\graphicspath{{./images}}
+
+% Additional colors
+\usepackage{xcolor}
+
+% Enable interactive hyperlinks
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks,
+    linkcolor={black},
+    menucolor={black},
+    citecolor={orange},
+    urlcolor={blue}
+}
+
+%% Math packages
+
+% Set-builder notation
+\usepackage{braket}
+
+% Useful math commands
+\usepackage{amsmath}
+% Support for custom theorem environments
+\usepackage{amsthm}
+
+%% Define some custom theorem-like environments
+
+% Environment for theorems
+\newtheorem{theorem}{Theorem}
+% Prefix the chapter identifier to every theorem number
+\numberwithin{theorem}{chapter}
+
+% Environment for lemmas
+\newtheorem*{lemma*}{Lemma}
+
+\theoremstyle{definition}
+
+% Propositions, true statements which are less important than theorems
+\newtheorem{proposition}{Proposition}
+\numberwithin{proposition}{chapter}
+% Corollaries, statements which follow easily from other results
+\newtheorem{corollary}{Corollary}
+\numberwithin{corollary}{chapter}
+
+% Environment for definitions
+\newtheorem{definition}{Definition}
+% Prefix the chapter identifier to every definition number
+\numberwithin{definition}{chapter}
+
+\theoremstyle{remark}
+
+\newtheorem*{remark*}{Remark}
+
+% Advanced math commands
+\usepackage{mathtools}
+
+% Encode mathematical symbols using Unicode characters
+\usepackage[
+    warnings-off={mathtools-colon,mathtools-overbracket}
+]{unicode-math}
+
+\setmathfont{TeX Gyre Schola Math}
+\setmathfont[range=\setminus]{Asana Math}
+
+% Simplification symbols
+\usepackage{cancel}
+
+% Load a file which defines additional math commands
+\input{commands}
+
+% Appendix support
+\usepackage{appendix}
+
+% Customizable header and footer styles
+\usepackage{fancyhdr}
+
+% Customizable figure captions
+\usepackage{caption}
+
+% Support for drawing graphics
+\usepackage{tikz}
+
+% Enable additional TikZ libraries
+\usetikzlibrary{chains,fit,shapes}
+
+% Generated graphics externalization
+\usetikzlibrary{external}
+\tikzexternalize[prefix=tikz/]
+
+% Metadata
+\title{Mathematical models of machine learning}
+\author{Gabriel Majeri}
+
+% Generate @-variables
+\makeatletter
+
+\begin{document}
+
+%% Front matter
+\cleardoublepage
+\let\ps@plain
+
+% Title page
+\include{content/0-title}
+\restoregeometry
+\newgeometry{
+    margin=2.5cm
+}
+
+\fancypagestyle{main}{
+  \fancyhf{}
+  \renewcommand\headrulewidth{0pt}
+  \fancyhead[C]{}
+  \fancyfoot[C]{\thepage}
+}
+
+\addtocounter{page}{1}
+
+% Abstract page
+\include{content/0-abstract}
+
+% Table of contents
+\tableofcontents
+
+%% Main matter
+\cleardoublepage
+\pagestyle{main}
+\let\ps@plain\ps@main
+
+\include{content/1-introduction}
+\include{content/2-theories-of-learning}
+\include{content/3-learning-algorithms}
+\include{content/4-auxiliary-models}
+\include{content/5-conclusions}
+
+%% Appendices
+\appendix
+
+\include{content/appendices/1-linear-algebra}
+\include{content/appendices/2-functional-analysis}
+\include{content/appendices/3-probability-theory}
+
+%% Bibliography
+\printbibliography[heading=bibintoc]
+
+\end{document}

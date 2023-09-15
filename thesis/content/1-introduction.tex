@@ -1,0 +1,42 @@
+\chapter{Introduction}
+
+\section{Motivation}
+
+Even since Antiquity \cite{Mayor2018}, humanity has been fascinated with the idea of constructing artificial ``life'' which is capable of rational thinking. The formalization of several models of computation in the 1930s and the creation of electronic computers in the 1940s made it seem as if we were very close to these goals; initial plans for artificial thinking machines were laid out at that same time \cite{Turing1950_ComputingMachineryAndIntelligence}.
+
+However, progress in artificial intelligence research in the second half of the XXth century was slow, failing to rise to the high expectation set out by the researchers themselves \cite{Newquist1994}. This led to several ``AI winters'', long periods of time when funding was withdrawn from such projects \cite[p.~203]{Crevier1993}.
+
+Fast forward to the early 2010s, when advances in computational power and the availability of large data sets made it possible to train \emph{deep neural networks} \cite{LeCun2015, Schmidhuber2015}. The resounding success of these techniques attracted the interest of many researchers and of several public institutions and private companies. In a short time, \emph{deep learning} was applied to almost all problem domains.
+
+Unfortunately, the field became a victim of its own success. There is again a mounting expectation for artificial intelligence to progress quickly, which leads many researchers to focus on inflated claims and short-term improvements, to the detriment of addressing some fundamental problems. Current approaches to AI, based on machine learning, have serious issues:
+\begin{itemize}
+    \item Lack of \emph{explainability} of a model's output (i.e. a reasoning for how it obtained that specific result) \cite{Castelvecchi2016, Sample2017};
+    \item Lack of \emph{robustness} against adversarial or ill-posed inputs \cite{SivaKumar2020};
+    \item Issues with \emph{reproducibility} of existing models in the literature \cite{Hutson2018_ReproducibilityCrisis, Kapoor2023};
+    \item Massive demand for \emph{data} to learn from \cite{Paullada2021};
+    \item Huge expense of \emph{computational power} for training and inference \cite{Thompson2020}.
+\end{itemize}
+
+In December 2017, Ali Rahimi, a machine learning researcher, accused others in the field of practicing ``alchemy'' \cite{Hutson2018_MachineLearningIsAlchemy} -- focusing too much on the end result, without considering why those methods work in the first place (or why they should generalize and achieve the claimed performances).
+
+I share Rahimi's concerns about the future of machine learning as a scientific endeavor. While its practical effectiveness and usefulness cannot be doubted, without proper care it might do society more harm than good. We need rigorous theoretical models in order to ensure the safe development and implementation of artificial intelligence.
+
+Furthermore, even while the recent introduction of large language models (such as OpenAI's ChatGPT) is promising for the automatization of various knowledge-based tasks, these tools still have serious limitations \cite{Bender2021}. I posit that these are consequences of the very simplistic model of the biological nervous system used in current artificial neural networks, which has been essentially the same for nearly 80 years. Improving on the current theoretical models has the potential to provide a leap of several orders of magnitude in the efficiency and power of AI models. At the very least, such advances will help us understand what we are currently doing wrong.
+
+\section{Acknowledgements}
+
+I would like to thank professor Iulian Cîmpean for his support and helpful advice during the research period and the writing of this thesis and my colleague Tudor Orban for insightful discussions on the evolution and the impact of AI on society. Finally, I would like to extend my gratefulness to all of the professors I had during my bachelor's and master's studies at the Faculty of Mathematics and Informatics of the University of Bucharest, who helped shape my thinking and imparted upon me an appreciation for a critical point of view on the modern world.
+
+\section{Outline}
+
+Each chapter of the paper attempts to present events in a chronological order, starting with the fundamental concepts and moving towards the present-day evolution of the field.
+
+The second chapter (the one right after this introduction) concerns itself with setting up the backdrop for the rest of the discussion: how can the concept of \emph{computation} be defined formally, what is \emph{learning}, what kind of learning situations we envision for the thinking machines we intend to construct etc.
+
+The third chapter presents a selection of algorithms and data structures which can solve the learning problem (with varying degrees of success). Far from being exhaustive, I have attempted to present some of the most pivotal machine learning techniques which have emerged until now, giving an overview of their strengths and weaknesses.
+
+The fourth chapter is more speculative in nature, presenting some powerful theoretical developments in the field which have yet to be fully explored, but which have nevertheless left a lasting impression on the field.
+
+\subsection{Prerequisites}
+
+The reader is expected to have some level of mathematical maturity, but no familiarity with either machine learning or with specific mathematical theories is assumed. The required notions from linear algebra, functional analysis and probability theory are given in the appendix, with references to them embedded in the text.

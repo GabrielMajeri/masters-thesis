@@ -1,0 +1,649 @@
+\chapter{Probability Theory}
+
+While some initial approaches to artificial intelligence involved formal representations of knowledge and symbolic reasoning, nowadays the field is firmly grounded in probabilistic methods. These are used to account for the imprecision in the algorithms' predictions, to quantify the uncertainty in our assumptions and beliefs, and to model the noise present in real-world training data. This appendix aims to give the reader a basic understanding of the mathematical theory of probability.
+
+% TODO: cite relevant works about the history of symbolic AI and modern probabilistic/Bayesian methods
+
+
+\section{Measure Theory}
+
+Mathematicians wrote informal treatises on games of chance and random patterns for several hundred years before the first rigorous, axiomatic theory of probability emerged. The breakthrough which enabled this formalisation was Henri Lebesgue's abstract theory of integration, itself grounded in Camille Jordan's and Émile Borel's exploration of the concept of \emph{measure}.
+
+% TODO: add citations to Lebesgue's and Borel's work
+% https://en.wikipedia.org/wiki/Henri_Lebesgue
+% https://en.wikipedia.org/wiki/%C3%89mile_Borel
+
+A thorough introduction to measure theory is Terrence Tao's book \cite{Tao2011}, which we have used as reference material for this section. Another wonderful overview is given in J. P. Grossman's series of YouTube videos on this topic \cite{BSoM_MeasureTheory}
+
+In order to properly define the concept of a measure, we will first need to specify the objects which we will be able to quantify. We will work with certain families of sets.
+ 
+\begin{definition}[\(\sigma\)-algebra]
+A \emph{\(\sigma\)-algebra} \(\symcal{F}\) on the set \(X\) is a collection of subsets of \(X\), such that the following conditions hold:
+\begin{itemize}
+    \item \(X\) itself is an element of \(\symcal{F}\);
+    \item \(\symcal{F}\) is closed under taking complements, i.e.\ if \(E \in \symcal{F}\), then \(X \setminus E \in \symcal{F}\);
+    \item \(\symcal{F}\) is closed under countable intersections, i.e.\ if \(E_1, E_2, \hdots \in \symcal{F}\), then
+    \[
+        \bigcap_{i \in \naturals^*} E_i \in \symcal{F}
+    \]
+\end{itemize}
+\end{definition}
+
+\begin{definition}
+The \(\sigma\)-algebra \emph{generated} by a subset \(A \subseteq \powerset{X}\) is the smallest \(\sigma\)-algebra containing all the sets from \(A\). It is denoted by \(\sigma(A)\).
+\end{definition}
+
+\begin{definition}[Measurable space]
+A \emph{measurable space} is a pair \(\left(X, \symcal{F}\right)\), where \(\symcal{F}\) is a \(\sigma\)-algebra on \(X\). An element \(E \in \symcal{F}\) is called a \emph{measurable set}.
+\end{definition}
+
+In the following, we will use the term \emph{space} interchangeably with \emph{measurable space}, when no ambiguity can arise.
+
+\begin{definition}
+Given two measurable spaces \(\left(X, \symcal{F}\right)\) and \(\left(Y, \symcal{G}\right)\), the \emph{product \(\sigma\)-algebra} on \(X \times Y\) is defined as
+\[
+    \symcal{F} \otimes \symcal{G} = \sigma\left(\Set{ (U, V) | U \in \symcal{F}, V \in \symcal{G} }\right)
+\]
+\end{definition}
+
+\begin{definition}[Measure]
+A \emph{measure} on the space \(\left(X, \symcal{F}\right)\) is a function \(\mu \colon \symcal{F} \to [0, +\infty]\), satisfying the following two properties:
+\begin{itemize}
+    \item Measure of the empty set is zero: \(\mu\left(\emptyset\right) = 0\);
+    \item It is \(\sigma\)-additive: if \(E_1, E_2, \dots \in \symcal{F}\) is a countable sequence of disjoint sets, then
+    \[
+        \mu\left(\bigcup_{k = 1}^{\infty} E_{k}\right) = \sum_{k = 1}^{\infty} \mu\left(E_k\right)
+    \]
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Measure space]
+A \emph{measure space} is a triplet \(\left(X, \symcal{F}, \mu\right)\) where \(\left(X, \symcal{F}\right)\) is a measurable space and \(\mu\) is a measure on it.
+\end{definition}
+
+\begin{definition}[Complete measure]
+\label{def:complete_measure}
+
+A measure on \(\left(X, \symcal{F}\right)\) is called \emph{complete} if, for any \(E \in \symcal{F}\) with \(\mu(E) = 0\) and any \(F \subset E\) we have \(\mu(F) = 0\).
+\end{definition}
+
+\begin{definition}[Measurable function]
+A function \(f \colon \left(X, \symcal{F}\right) \to \left(Y, \symcal{B}\right)\) between two measurable spaces is called \emph{measurable} if \(f^{-1} (B) \in \symcal{F}\) for every \(B \in \symcal{B}\).
+\end{definition}
+
+\begin{proposition}
+The \emph{composition} \(g \circ f\) of two measurable functions \(f \colon \left(X, \symcal{F}\right) \to \left(Y, \symcal{B}\right)\) and \(g \colon \left(Y, \symcal{B}\right) \to \left(Z, \symcal{C}\right)\) is itself a measurable function.
+\end{proposition}
+\begin{proof}
+For any \(G \in \symcal{C}\), we have
+\[
+    \left(g \circ f\right)^{-1} (G) = \left(f^{-1} \circ g^{-1}\right) (G) = f^{-1} \left(g^{-1} (G)\right)
+\]
+Using the fact that \(g\) is measurable, we deduce that \(g^{-1} (G) \in \symcal{B}\), and now because \(f\) is measurable, we obtain \(f^{-1} \left(g^{-1} (G)\right) \in \symcal{F}\).
+\end{proof}
+
+\begin{definition}[Push-forward measure]
+The \emph{push-foward} of a measure \(\mu\) (on \(X\)) through a measurable function \(f \colon \left(X, \symcal{F}\right) \to \left(Y, \symcal{B}\right)\) is the measure \(\eta\) (on \(Y\)), defined by
+\[
+    \eta(F) = \left(f_{*} \mu\right) (F) = \mu \left(f^{-1} (F)\right)
+\]
+for any \(F \in \symcal{B}\).
+\end{definition}
+
+\section{Theory of Probability}
+
+One of the first modern works to provide a rigorous foundation for probability theory using measure theory is Kolmogorov's book from 1933 \cite{Kolmogorov1933}.
+
+\subsection*{Probability Spaces}
+
+\begin{definition}[Probability measure]
+A \emph{probability measure} on a set \(\Omega\) is a measure \(\probability\) on \(\Omega\) for which \(\probability(\Omega) = 1\).
+\end{definition}
+
+\begin{definition}[Probability space]
+A \emph{probability space} is a measurable space \(\left(\Omega, \symcal{F}, \probability\right)\) for which \(\probability\) is a probability measure.
+\end{definition}
+
+\begin{remark*}
+The measurable sets of \(\Omega\) are more commonly known as \emph{events}.
+\end{remark*}
+
+\begin{definition}[Complete probability space]
+A probability space \(\left(\Omega, \symcal{F}, \probability\right)\) is called \(\emph{complete}\) if the probability measure \(\probability\) is complete (see definition \ref{def:complete_measure}).
+\end{definition}
+
+\begin{definition}[Conditional probability]
+Let \(A, B \in \Omega\) be two events with \(\probability(B) \neq 0\). The \emph{conditional probability of \(A\) given \(B\)} is
+\[
+    \probability\given{A}{B} = \frac{\probability(A \cap B)}{\probability(B)}
+\]
+\end{definition}
+
+\begin{theorem}[Bayes]
+Let \(A, B \in \Omega\) be two events with \(\probability(B) \neq 0\). The following equality holds:
+\[
+    \probability\given{A}{B} = \frac{\probability\given{B}{A} \probability(A)}{\probability(B)}
+\]
+\end{theorem}
+\begin{proof}
+From the definition of conditional probability for \(\probability\given{A}{B}\), we get that
+\[
+    \probability(A \cap B) = \probability\given{A}{B} \probability(B)
+\]
+Doing the same for \(\probability\given{B}{A}\), we obtain
+\[
+    \probability(B \cap A) = \probability\given{B}{A} \probability(A)
+\]
+Since \(A \cap B = B \cap A\), we can connect the two equalities above to obtain
+\[
+    \probability\given{A}{B} \probability(B) = \probability\given{B}{A} \probability(A)
+\]
+Dividing by \(\probability(B)\) on both sides (we've assumed in the hypothesis that it is not zero) gives us the desired conclusion.
+\end{proof}
+
+\subsection*{Random Variables}
+
+\begin{definition}[Random variable]
+A \emph{random variable} \(X\) is a measurable function from a probability space \(\left(\Omega, \symcal{A}, \probability\right)\) to some measurable space \(\left(Y, \symcal{B}\right)\).
+\end{definition}
+
+\begin{remark*}
+Most commonly we will consider random variables taking values in \(\reals\), on which we impose a measure space structure with the \emph{Borel \(\sigma\)-algebra} \(\borelsets{\reals}\) (the \(\sigma\)-algebra generated by all open sets).
+\end{remark*}
+
+\begin{definition}[Distribution of a random variable]
+The \emph{distribution} of a random variable \(X \colon \Omega \to \reals\) is the push-forward measure \(\probability_X\) given by
+\[
+    \probability_X \left(B\right) = \probability\left(X^{-1} \left(B\right)\right)
+\]
+for all \(B \in \borelsets{\reals}\).
+\end{definition}
+
+\begin{definition}[Probability density function]
+The \emph{probability density function} of \(X\) is a measurable function \(f_X \colon \reals \to \reals^{+}\) with the property that
+\[
+    \probability_X (B) = \int_{B} f_X (x) \diff x
+\]
+for any \(B \in \borelsets{\reals}\).
+\end{definition}
+
+\begin{remark*}
+The density function of a random variable is unique up to sets of Lebesgue measure zero. Its existence is implied by the \emph{Radon-Nikodym theorem}.
+\end{remark*}
+
+\begin{definition}[Cumulative distribution function]
+The \emph{cumulative distribution function} of a random variable \(X\) is
+\begin{align*}
+    F_X (x) &= \probability\left(X \leq x\right)
+    = \probability_X \left((-\infty, x]\right) \\
+    &= \probability\left(X^{-1} \left((-\infty, x]\right)\right)
+    = \probability\left(\Set{ \omega \in \Omega | X(\omega) \leq x }\right)
+\end{align*}
+\end{definition}
+
+\subsection*{Measurable Cross-Sections}
+
+In the following discussion, let \(\left(\Omega, \symcal{F}, \probability\right)\) be a probability space and \(\left(T, d\right)\) a metric space, viewed as a measurable space endowed with the Borel \(\sigma\)-algebra \(\borelsets{T}\).
+
+The original results in this section rely on the notion of \emph{analytic sets} associated with a \(\sigma\)-algebra. For simplicity, we will instead assume that \(\Omega \times T\) is a complete probability space (in this case, the measurable sets coincide with the ``analytic sets''). The interested reader can consult \cite{DellacherieMeyer1978} for the complete details. The only result we will require from there is the following:
+
+\begin{theorem}[Measurable cross-section]
+\label{thm:measurable_cross_section}
+
+Let \(\left(\Omega \times T, \symcal{F} \otimes \borelsets{T}, \probability\right)\) be a complete probability space and \(A \in \symcal{F} \otimes \borelsets{T}\). Let \(\overline{T} = T \sqcup \Set{ \infty }\) and denote by \(\pi_{\Omega} \colon \Omega \times T \to \Omega\) the projection onto the first component. There exists a measurable map \(s \colon \Omega \to \overline{T}\), called a \emph{cross-section}, for which
+\begin{itemize}
+    \item \(s(\omega) \neq \infty\) implies that \(\left(\omega, s(\omega)\right) \in A\);
+    \item \(\probability_{\pi_{\Omega}}\left(s(\omega) \neq \infty\right) = 1\).
+\end{itemize}
+\end{theorem}
+
+The following theorem and its proof are based on \cite[p.~197]{Pollard1984}.
+
+\begin{theorem}
+\label{thm:pollard_supremum_of_stochastic_process}
+
+Let \(\Set{ X_t }\) be a family of random variables indexed by \(t \in T\), such that \(X \colon \Omega \times T \to \reals\) is measurable and \(X_t = X(\cdot, t)\). Then there exists a random variable \(\tau \colon \Omega \to T\) such that
+\[
+    \probability\given{\abs{X_\tau} > \varepsilon}{\sup_{t \in T} \, \abs{X_t} > \varepsilon} = 1
+\]
+In other words, we have \(\abs{X_\tau} > \varepsilon\) almost surely whenever \(\sup_{t \in T} \abs{X_t} > \varepsilon\).
+\end{theorem}
+\begin{proof}
+Let \(\Set{ \varepsilon_i }_{i \in \naturals}\) be a strictly decreasing sequence of (extended) real numbers, with \(\varepsilon_0 = \infty\). Define
+\begin{align*}
+    A_i &= \Set{ \omega \in \Omega | \varepsilon_{i + 1} < \sup_{t \in T} \, \abs{X(\omega, t)} \leq \varepsilon_i } \\
+    B_i &= \Set{ (\omega, t) \in \Omega \times T | \varepsilon_{i + 1} < \abs{X(\omega, t)} \leq \varepsilon_i }
+\end{align*}
+The sets \(A_i\) and \(B_i\) are measurable, since
+\begin{align*}
+    A_i &= \left(\sup_{t \in T} \abs{X_t}\right)^{-1} \left(\left(\varepsilon_{i + 1}, \varepsilon_i\right]\right) \in \symcal{F} \\
+    B_i &= \left(\abs{X}\right)^{-1} \left(\left(\varepsilon_{i + 1}, \varepsilon_{i}\right]\right) \in \symcal{F} \otimes \borelsets{T}
+\end{align*}
+(see \cite{AdamsNobel2010} for a discussion on the measurability of supremums of random variables)
+
+Applying the previous theorem \ref{thm:measurable_cross_section}, we obtain a cross-section \(s_i \colon \Omega \to \overline{T}\) for each \(B_i\). Fix a \(t_0 \in T\). Define \(\tau \colon \Omega \to T\) as follows:
+\[
+    \tau(\omega) = \begin{cases}
+        \tau_i (\omega) \text{ if } \omega \in A_i \text{ and } \tau_i (\omega) \neq \infty \\
+        t_0 \text{ otherwise }
+    \end{cases}
+\]
+For almost all \(\omega \in \Omega\), if \(\sup_{t \in T} \abs{X(\omega, t)} > \varepsilon\), then by definition we have \(\omega \in A_i\) for some \(i\) (say \(\varepsilon = \varepsilon_{i + 1}\)). By the properties of the cross-section, this means that \(\left(\omega, \tau(\omega)\right) \in B_i\), whence
+\[
+    \varepsilon = \varepsilon_{i + 1} < \abs{X(\omega, \tau(\omega))} \leq \varepsilon_i
+\]
+or in other words
+\[
+    \abs{X_\tau (\omega)} > \varepsilon
+\]
+\end{proof}
+
+\subsection*{Expected Value}
+
+\begin{definition}[Expected value]
+The \emph{expected value} of the random variable \(X\) is the value of the integral
+\[
+    \expectedvalue\left[X\right] = \int_{-\infty}^{+\infty} x \diff \probability_X (x) = \int_{-\infty}^{+\infty} x \, f_X (x) \diff x
+\]
+\end{definition}
+
+\begin{remark*}
+The integral above is technically a Lebesgue integral, but for our purposes, interpreting it as a Riemann integral on \(\reals\) will suffice.
+\end{remark*}
+
+\begin{definition}
+Let \(X \colon \Omega \to \reals\) be a random variable and \(g \colon \reals \to \reals\) a measurable function. The \emph{composition of \(g\) and \(X\)}, denoted by \(g(X)\), is the random variable \(g \circ X\).
+\end{definition}
+
+\begin{remark*}
+By the properties of the Lebesgue integral, the expected value of the composite random variable is given by
+\[
+    \expectedvalue\left[g(X)\right] = \int_{-\infty}^{+\infty} g(x) \diff \probability_X (x) = \int_{-\infty}^{+\infty} g(x) \, f_{X} (x) \diff x
+\]
+\end{remark*}
+
+\begin{proposition}[Properties of expected value]
+For any \(X, Y\) random variables and \(a \in \reals\), the following hold:
+\begin{enumerate}
+    \item \(\expectedvalue[X + a] = \expectedvalue[X] + a\)
+    \item \(\expectedvalue[a X] = a \expectedvalue[X]\)
+    \item \(\expectedvalue[X + Y] = \expectedvalue[X] + \expectedvalue[Y]\)
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+The properties follow from the definition of the expected value and the well-known properties of the integral.
+\begin{enumerate}
+    \item We apply a previous remark for the composition of \(X\) with the measurable function \(g(x) = x + a\).
+    \begin{align*}
+        \expectedvalue[X + a] &= \int_{-\infty}^{+\infty} (x + a) \, f_X (x) \diff x
+        = \int_{-\infty}^{+\infty} x \, f_X (x) \diff x + \int_{-\infty}^{+\infty} a \, f_X (x) \diff x \\[0.5em]
+        &= \expectedvalue[X] + a \int_{-\infty}^{+\infty} f_X (x) \diff x
+        = \expectedvalue[X] + a
+    \end{align*}
+
+    \item We now compose \(X\) with the function \(g(x) = ax\).
+    \[
+        \expectedvalue[a X] = \int_{-\infty}^{+\infty} a \, x \, f_X (x) \diff x = a \int_{-\infty}^{+\infty} x \, f_X (x) \diff x = a \expectedvalue[X]
+    \]
+
+    \item We use the linearity of the integral.
+    \begin{align*}
+        \expectedvalue[X + Y] &= \int_{-\infty}^{+\infty} x \left(f_X (x) + f_Y (x)\right) \diff x \\
+        &= \int_{-\infty}^{+\infty} x \, f_X (x) \diff x + \int_{-\infty}^{+\infty} x \, f_Y (x) \diff x \\
+        &= \expectedvalue[X] + \expectedvalue[Y]
+    \end{align*}
+\end{enumerate}
+\end{proof}
+
+\subsection*{Variance and Covariance}
+
+\begin{definition}[Variance]
+The \emph{variance} of the random variable \(X\) is given by
+\[
+    \variance(X) = \expectedvalue\left[\left(X - \expectedvalue\left[X\right]\right)^2\right]
+\]
+\end{definition}
+
+\begin{remark*}
+A short computation will provide us with an alternative and often used formula for the variance:
+\begin{align*}
+    \variance(X) &= \expectedvalue\left[\left(X - \expectedvalue\left[X\right]\right)^2\right] = \expectedvalue\left[X^2 - 2 \cdot \expectedvalue\left[X\right] \cdot X + \left(\expectedvalue[X]\right)^2\right] \\
+    &= \expectedvalue\left[X^2\right] - 2 \cdot \expectedvalue\left[X\right] \cdot \expectedvalue\left[X\right] + \left(\expectedvalue\left[X\right]\right)^2 \\
+    &= \expectedvalue\left[X^2\right] - 2 \cdot \left(\expectedvalue\left[X\right]\right)^2 + \left(\expectedvalue\left[X\right]\right)^2 \\
+    &= \expectedvalue\left[X^2\right] - \left(\expectedvalue\left[X\right]\right)^2
+\end{align*}
+\end{remark*}
+
+\begin{definition}[Standard deviation]
+The \emph{standard deviation} of a random variable \(X\) is given by
+\[
+    \sigma_X = \sqrt{\variance{X}}
+\]
+\end{definition}
+
+\begin{definition}[Covariance]
+The \emph{covariance} of two random variables is given by
+\[
+    \covariance(X, Y) = \expectedvalue\left[\left(X - \expectedvalue[X]\right) \left(Y - \expectedvalue(Y)\right)\right]
+\]
+\end{definition}
+
+\begin{remark*}
+We have that \(\covariance(X, X) = \variance(X)\).
+\end{remark*}
+
+\begin{proposition}[Properties of variance]
+For any \(X, Y\) random variables and \(a \in \reals\), the following hold:
+\begin{enumerate}
+    \item \(\variance(X + a) = \variance(X)\)
+    \item \(\variance(a X) = a^2 \variance(X)\)
+    \item \(\variance(X + Y) = \variance(X) + \variance(Y) + 2 \covariance(X, Y)\)
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+~
+\begin{enumerate}
+    \item This property follows from the definition of variance by simplifying the \(a\)s that appear:
+    \begin{align*}
+        \variance(X + a) &= \expectedvalue\left[\left(\left(X + a\right) - \expectedvalue\left[X + a\right]\right)^2\right] \\
+        &= \expectedvalue\left[\left(X + \cancel{a} - \expectedvalue[X] + \cancel{a}\right)^2\right] \\
+        &= \expectedvalue\left[\left(X - \expectedvalue[X]\right)^2\right] = \variance(X)
+    \end{align*}
+
+    \item This property follows by using the definition of variance and pulling out the common \(a\) factor:
+    \begin{align*}
+        \variance(a X) &= \expectedvalue\left[\left(a X - \expectedvalue\left[a X\right]\right)^2\right] \\
+        &= \expectedvalue\left[\left(a \left(X - \expectedvalue\left[X\right]\right)\right)^2\right] \\
+        &= \expectedvalue\left[a^2 \left(X - \expectedvalue\left[X\right]\right)^2\right] \\
+        &= a^2 \expectedvalue\left[\left(X - \expectedvalue\left[X\right]\right)^2\right] = a^2 \variance(X)
+    \end{align*}
+
+    \item For this property, we use the definition of variance, apply the linearity of the expected value and regroup conveniently:
+    \begin{align*}
+        \variance(X + Y) &= \expectedvalue\left[\left(\left(X + Y\right) - \expectedvalue\left[\left(X + Y\right)\right]\right)^2\right] \\
+        &= \expectedvalue\left[\left(X + Y - \expectedvalue\left[X\right] - \expectedvalue\left[Y\right]\right)^2\right] \\
+        &= \expectedvalue\left[\left((X - \expectedvalue[X]) + (Y - \expectedvalue[Y])\right)^2\right] \\
+        &= \expectedvalue\left[(X - \expectedvalue[X])^2 + (Y - \expectedvalue[Y])^2 + 2 (X - \expectedvalue[X]) (Y - \expectedvalue[Y])\right] \\
+        &= \expectedvalue\left[(X - \expectedvalue[X])^2\right] + \expectedvalue\left[(Y - \expectedvalue[Y])^2\right] + \\
+        &\qquad\quad + 2 \expectedvalue\left[(X - \expectedvalue[X]) (Y - \expectedvalue[Y])\right] \\
+        &= \variance(X) + \variance(Y) + 2 \covariance(X, Y)
+    \end{align*}
+\end{enumerate}
+\end{proof}
+
+\subsection*{Markov's and Chebyshev's Inequalities}
+
+\begin{theorem}[Markov's Inequality]
+Let \(X \colon \Omega \to \reals^+\) be a non-negative random variable and let \(a > 0\). Then
+\[
+    \probability\left(X \geq a\right) \leq \frac{\expectedvalue\left[X\right]}{a}
+\]
+\end{theorem}
+\begin{proof}
+By definition, the expected value of \(X\) is
+\[
+    \expectedvalue\left[X\right] = \int_{-\infty}^{+\infty} x \diff \probability_X (x) = \int_{-\infty}^{+\infty} x \, f_X (x) \diff x
+\]
+Since our random variable is assumed to be non-negative, we can rewrite this as
+\[
+    \expectedvalue\left[X\right] = \int_{0}^{+\infty} x \, f_X (x) \diff x = \int_{0}^{a} x \, f_X (x) \diff x + \int_{a}^{+\infty} x \, f_X (x) \diff x
+\]
+Because the product \(x \, f_X (x)\) is positive and certainly finite from \(0\) to \(a\), we can provide a lower bound for the expected value of \(X\):
+\[
+    \expectedvalue\left[X\right] \geq \int_{a}^{+\infty} x \, f_X (x) \diff x
+\]
+Furthermore, we can lower bound \(x \, f_X (x)\) by \(a \, f_X (x)\), giving us
+\[
+    \expectedvalue\left[X\right] \geq \int_{a}^{+\infty} a \, f_X (x) \diff x = a \int_{a}^{+\infty} f_X (x) \diff x = a \cdot \probability\left(X \geq a\right)
+\]
+whence, dividing by \(a\) on both sides, we obtain
+\[
+    \frac{\expectedvalue\left[X\right]}{a} \geq \probability\left(X \geq a \right)
+\]
+as claimed.
+\end{proof}
+
+\begin{theorem}[Chebyshev's Inequality]
+\label{thm:chebyshev_inequality}
+Let \(X\) be a random variable with finite expected value \(\mu\) and finite standard deviation \(\sigma\). For any \(t > 0\), we have
+\[
+    \probability\left(\abs{X - \mu} \geq t \sigma\right) \leq \frac{1}{t^2}
+\]
+\end{theorem}
+\begin{proof}
+Squaring both sides of the inner inequality, we get
+\[
+    \probability\left(\abs{X - \mu} \geq t \sigma\right) = \probability\left(\left(X - \mu\right)^2 \geq t^2 \sigma^2\right)
+\]
+We can now apply Markov's inequality to the random variable \(\left(X - \mu\right)^2\), taking \(a = t^2 \sigma^2\), which gives us
+\[
+    \probability\left(\left(X - \mu\right)^2 \geq t^2 \sigma^2\right) \leq \frac{\expectedvalue\left[\left(X - \mu\right)^2\right]}{t^2 \sigma^2} = \frac{\bcancel{\variance(X)}}{t^2 \cdot \bcancel{\variance(X)}} = \frac{1}{t^2}
+\]
+\end{proof}
+
+\begin{definition}
+\label{def:identically_distributed}
+
+A family \(\Set{ X_i }_{i \in I}\) of random variables is said to be \emph{identically distributed} if
+\[
+    F_{X_i} (x) = F_{X_j} (x)
+\]
+for all \(x \in \reals\), \(i, j \in I\).
+\end{definition}
+
+\begin{definition}
+\label{def:independence}
+
+A family \(\Set{ X_i }_{i \in I}\) of random variables is said to be \emph{independent} if
+\[
+    F_{X_{i_1}, \dots, X_{i_n}} (x) = F_{X_{i_1}} (x) \cdot \dots \cdot F_{X_{i_n}} (x) 
+\]
+for all \(x \in \reals\), \(n \in \naturals\) and \(i_1, \dots, i_n \in I\).
+\end{definition}
+
+\begin{definition}
+A family \(\Set{ X_i }\) of random variables is said to be \emph{independent and identically distributed} (\emph{i.i.d.}) if it respects the conditions stated in definitions \ref{def:identically_distributed} and \ref{def:independence}.
+\end{definition}
+
+\begin{definition}[Sample average]
+The \emph{sample average} of a sequence \(X_1, \dots, X_n\) of random variables is
+\[
+    \overline{X}_n = \frac{1}{n} \sum_{i = 1}^{n} X_i
+\]
+\end{definition}
+
+\begin{theorem}[Weak law of large numbers]
+\label{thm:weak_law_of_large_numbers}
+
+Let \(X_1, \dots, X_n\) be a sequence of i.i.d.\ random variables with expected value \(\mu\). Then for any real number \(\varepsilon > 0\), we have
+\[
+    \lim_{n \to \infty} \probability\left(\abs{\overline{X}_n - \mu} \geq \varepsilon\right) = 0
+\]
+\end{theorem}
+\begin{proof}
+We intend to apply Chebyshev's inequality. Clearly, the expected value of the sample average is the same as the mean of any individual variable: \(\expectedvalue\left[\overline{X}_n\right] = \mu\).
+
+Since the variables are independent, their covariance is \(0\). This allows us to compute the variance of the sample mean as
+\[
+    \variance\left(\overline{X}_n\right) = \variance\left(\frac{1}{n} \sum_{i = 1}^{n} X_i\right) = \frac{1}{n^2} \sum_{i = 1}^{n} \variance\left(X_i\right) = \frac{1}{n^2} \cdot n \cdot \sigma^2 = \frac{\sigma^2}{n}
+\]
+Hence, the standard deviation is \(\frac{\sigma}{\sqrt{n}}\).
+
+Chebyshev's inequality now tells us that
+\[
+    \probability\left(\abs{\overline{X}_n - \mu} \geq t \frac{\sigma}{\sqrt{n}}\right) \leq \frac{1}{t^2}
+\]
+for any \(t > 0\). Letting \(\varepsilon \coloneq t \sigma / \sqrt{n}\), we have \(t^2 = \varepsilon^2 n / \sigma^2\). Substituting, we obtain
+\[
+    \probability\left(\abs{\overline{X}_n - \mu} \geq \varepsilon\right) \leq \frac{\sigma^2}{\varepsilon^2 n}
+\]
+When \(n\) tends to infinity, the right-hand side of the inequality tends to \(0\), as claimed.
+\end{proof}
+
+\subsection*{Hoeffding's Inequality}
+
+\begin{definition}
+The \emph{\(k\)-th moment} of a random variable \(X\) is
+\[
+    m_k (X) = \expectedvalue\left[X^k\right]
+\]
+\end{definition}
+
+\begin{definition}[Moment-generating function]
+The \emph{moment-generating function} of a random variable \(X\) is
+\[
+    M_X (t) = \expectedvalue\left[e^{t X}\right]
+\]
+\end{definition}
+
+\begin{remark*}
+The series expansion of \(e^{t X}\) is
+\[
+    e^{t X} = 1 + \frac{t \, X}{1!} + \frac{t^2 \, X^2}{2!} + \dots + \frac{t^k \, X^k}{k!} + \dots
+\]
+whence the expected value is
+\begin{align*}
+    \expectedvalue\left[e^{t X}\right] &= 1 + \frac{t \, \expectedvalue\left[X\right]}{1!} + \frac{t^2 \, \expectedvalue\left[X^2\right]}{2!} + \dots + \frac{t^k \, \expectedvalue\left[X^k\right]}{k!} + \dots \\
+    &= 1 + \frac{t \, m_1 (X)}{1!} + \frac{t^2 \, m_2 (X)}{2!} + \dots + \frac{t^k \, m_k (X)}{k!} + \dots
+\end{align*}
+This justifies the name ``moment-generating function''.
+\end{remark*}
+
+\begin{lemma*}[Hoeffding's lemma]
+Let \(X\) be a random variable which is bounded almost-surely, i.e.\ there exist \(a, b \in \reals\) such that \(\probability\left(a \leq X \leq b\right) = 1\). Then, for any \(\lambda > 0\), we have
+\[
+    \expectedvalue\left[e^{\lambda X}\right] \leq e^{\lambda \expectedvalue[X] + \frac{\lambda^2 (b - a)^2}{8}}
+\]
+\end{lemma*}
+\begin{proof}
+Note that
+\[
+    \expectedvalue\left[e^{\lambda \left(X - \expectedvalue[X]\right)}\right] = \expectedvalue\left[e^{\lambda X} e^{-\lambda \expectedvalue[X]}\right] = \expectedvalue\left[e^{\lambda X}\right] \cdot e^{-\lambda \expectedvalue[X]}
+\]
+So we can assume that \(X\) has mean \(0\) and prove only that
+\[
+    \expectedvalue\left[e^{\lambda X}\right] \leq e^{\frac{\lambda^2 (b - a)^2}{8}}
+\]
+
+Since \(f(x) = e^{\lambda x}\) is a convex function, we can apply Jensen's inequality \cite{Jensen1906} on the interval \([a, b]\) to obtain
+\[
+    e^{\lambda x} \leq \frac{b - x}{b - a} e^{\lambda a} + \frac{x - a}{b - a} e^{\lambda b}
+\]
+for all \(x \in [a, b]\). By the linearity of the expected value, we get
+\begin{align*}
+    \expectedvalue\left[e^{\lambda X}\right] &\leq \expectedvalue\left[\frac{b - X}{b - a} e^{\lambda a} + \frac{X - a}{b - a} e^{\lambda b}\right]
+    = \frac{b - \expectedvalue[X]}{b - a} e^{\lambda a} + \frac{\expectedvalue[X] - a}{b - a} e^{\lambda b} \\[0.5em]
+    &= \frac{b}{b - a} e^{\lambda a} + \frac{-a}{b - a} e^{\lambda b}
+    = e^{\lambda a} \left(\frac{b}{b - a} + \frac{- a}{b - a} e^{\lambda b - \lambda a}\right) \\[0.5em]
+    &= e^{\lambda a} e^{\ln \left(\frac{b}{b - a} + \frac{- a}{b - a} e^{\lambda (b - a)}\right)}
+    = e^{\lambda a + \ln \left(\frac{b - a e^{\lambda (b - a)}}{b - a}\right)} \\[0.5em]
+    &= e^{\frac{\lambda (b - a) a}{b - a} + \ln \left(1 + \frac{a - a e^{\lambda (b - a)}}{b - a}\right)}
+    = e^{\, g(\lambda (b - a))}
+\end{align*}
+where
+\[
+    g(y) = \frac{y a}{b - a} + \ln \left(1 + \frac{a - a e^y}{b - a}\right)
+\]
+The first derivative of \(g\) with respect to \(y\) is
+\[
+    g'(y) = \frac{a}{b - a} + \frac{1}{1 + \frac{a - a e^y}{b - a}} \cdot \frac{- a e^y}{b - a}
+    = \frac{a}{b - a} + \frac{\cancel{b - a}}{b - a e^y} \cdot \frac{- a e^y}{\cancel{b - a}} 
+    = \frac{a}{b - a} - \frac{a e^y}{b - a e^y}
+\]
+while the second derivative is
+\[
+    g''(y) = - \frac{a e^y (b - a e^y) + a^2 e^{2y}}{\left(b - a e^y\right)^2} = - \frac{ab e^y - \cancel{a^2 e^{2y}} + \cancel{a^2 e^{2y}}}{\left(b - a e^y\right)^2} = \frac{- a b e^y}{\left(b - a e^y\right)^2}
+\]
+The inequality of the geometric and arithmetic means states that
+\[
+    \sqrt{u v} \leq \frac{u + v}{2}
+\]
+whence
+\[
+    \frac{u v}{(u + v)^2} \leq \frac{1}{4}
+\]
+In our case, taking \(u = b\) and \(v = - a e^y\), we deduce that
+\[
+    g''(y) \leq \frac{1}{4}
+\]
+for all \(y \in \reals\).
+
+We can now apply Taylor's theorem up to the second order, to conclude that there exists some \(z \in [0, 1]\) for which
+\begin{align*}
+    g(y) &= g(0) + y g'(0) + \frac{1}{2} y^2 g''(y z) \\[0.5em]
+    &\leq 0 + y \cdot 0 + \frac{1}{2} \cdot y^2 \cdot \frac{1}{4} = \frac{1}{8} y^2
+\end{align*}
+
+Plugging this estimate back into the inequality from before, we obtain
+\[
+    \expectedvalue\left[e^{\lambda X}\right] \leq e^{\frac{1}{8} \lambda^2 (b - a)^2}
+\]
+as claimed.
+\end{proof}
+
+We are now ready to state and prove Hoeffding's inequality \cite{Hoeffding1963} for sums of bounded independent random variables.
+
+\begin{theorem}[Hoeffding's inequality]
+\label{thm:hoeffdings_inequality}
+
+Let \(X_1, \dots, X_n\) be a sequence of independent random variables which are bounded almost surely, i.e.\ there exist \(a_i, b_i \in \reals\) such that \(\probability\left(a_i \leq X_i \leq b_i\right) = 1\) for all \(i = \overline{1, n}\). Denote by \(S_n\) the sum of these random variables,
+\[
+    S_n = X_1 + \dots + X_n
+\]
+Then, for any \(\varepsilon > 0\), we have
+\[
+    \probability\left(S_n - \expectedvalue\left[S_n\right] \geq \varepsilon\right) \leq e^{- \frac{2 \varepsilon^2}{\sum_{i = 1}^{n} \left(b_i - a_i\right)^2}}
+\]
+and
+\[
+    \probability\left(\abs{S_n - \expectedvalue\left[S_n\right]} \geq \varepsilon\right) \leq 2 \, e^{- \frac{2 \varepsilon^2}{\sum_{i = 1}^{n} \left(b_i - a_i\right)^2}}
+\]
+\end{theorem}
+\begin{proof}
+Let \(\lambda > 0\). Using the fact that the exponential function is monotonically increasing, rewrite the probability as
+\[
+    \probability\left(S_n - \expectedvalue\left[S_n\right] \geq \varepsilon\right) = \probability\left(\lambda \left(S_n - \expectedvalue\left[S_n\right]\right) \geq \lambda \varepsilon\right) = \probability\left(e^{\lambda \left(S_n - \expectedvalue\left[S_n\right]\right)} \geq e^{\lambda \varepsilon}\right)
+\]
+Applying Markov's inequality for \(X = e^{\lambda (S_n - \expectedvalue\left[S_n\right])}\) and \(a = e^{\lambda \varepsilon}\), we have:
+\[
+    \probability\left(e^{\lambda \left(S_n - \expectedvalue\left[S_n\right]\right)} \geq e^{\lambda \varepsilon}\right) \leq \frac{\expectedvalue\left[e^{\lambda \left(S_n - \expectedvalue\left[S_n\right]\right)}\right]}{e^{\lambda \varepsilon}}
+\]
+We've assumed in the hypothesis that the variables are independent. This means we can break up the expected value as
+\begin{gather*}
+    \expectedvalue\left[e^{\lambda \left(S_n - \expectedvalue\left[S_n\right]\right)}\right]
+    = \expectedvalue\left[e^{\lambda \left(\left(\sum_{i = 1}^{n} X_i\right) - \left(\sum_{i = 1}^{n} \expectedvalue\left[X_i\right]\right)\right)}\right] \\[0.5em]
+    = \expectedvalue\left[e^{\sum_{i = 1}^{n} \lambda \left(X_i - \expectedvalue\left[X_i\right]\right)}\right]
+    = \prod_{i = 1}^{n} \expectedvalue\left[e^{\lambda \left(X_i - \expectedvalue\left[X_i\right]\right)}\right]
+\end{gather*}
+Since each variable \(X_i\) is bounded, we can apply Hoeffding's lemma:
+\[
+    \expectedvalue\left[e^{\lambda \left(X_i - \expectedvalue\left[X_i\right]\right)}\right] \leq e^{\frac{1}{8} \lambda^2 \left(b_i - a_i\right)^2}
+\]
+thus, overall
+\[
+    \prod_{i = 1}^{n} \expectedvalue\left[e^{\lambda \left(X_i - \expectedvalue\left[X_i\right]\right)}\right]
+    \leq
+    \prod_{i = 1}^{n} e^{\frac{1}{8} \lambda^2 \left(b_i - a_i\right)^2}
+\]
+Putting the inequalities together, we have
+\[
+    \probability\left(S_n - \expectedvalue\left[S_n\right] \geq \varepsilon\right) \leq e^{- \lambda \varepsilon + \frac{1}{8} \lambda^2 \sum_{i = 1}^{n} \left(b_i - a_i\right)^2}
+\]
+The exponent of the term on the right is quadratic in \(\lambda\). The discriminant is \(\Delta = \varepsilon^2\) and the minimum is attained for
+\[
+    \lambda = \frac{\varepsilon}{\frac{1}{4} \sum_{i = 1}^{n} \left(b_i - a_i\right)^2}
+\]
+Plugging this back into the inequality above, we get
+\[
+    \probability\left(S_n - \expectedvalue\left[S_n\right] \geq \varepsilon\right) \leq e^{- \frac{2 \varepsilon^2}{\sum_{i = 1}^{n} \left(b_i - a_i\right)^2}}
+\]
+as claimed. For the other conclusion, the law of total probability tells us that
+\begin{align*}
+    \probability\left(\abs{S_n - \expectedvalue\left[S_n\right]} \geq \varepsilon\right) &= \probability\given{S_n - \expectedvalue\left[S_n\right] \geq \varepsilon}{S_n \geq \expectedvalue\left[S_n\right]} \\
+    & + \probability\given{\expectedvalue\left[S_n\right] - S_n \geq \varepsilon}{S_n < \expectedvalue\left[S_n\right]}
+\end{align*}
+whence
+\[
+    \probability\left(\abs{S_n - \expectedvalue\left[S_n\right]} \geq \varepsilon\right) \leq 2 \, e^{- \frac{2 \varepsilon^2}{\sum_{i = 1}^{n} \left(b_i - a_i\right)^2}}
+\]
+\end{proof}

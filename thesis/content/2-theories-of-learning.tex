@@ -1,0 +1,717 @@
+\chapter{Theories of Learning}
+
+In order to construct programs that learn, we first have to define what learning is. While most of us have an intuitive understanding of the process of learning (e.g.\ accumulating new information from the environment, making mistakes and receiving feedback, looking at existing examples and generalising from them), we are going to need a rigorous formalism in order to clearly establish the constraints of the learning process and its objective, as well as to be able to measure our progress.
+
+\section{Models of Computation}
+
+Before discussing several theoretical frameworks of learning, we will cover a related and necessary prerequisite concept: computation. In order to have machines that learn and think, we must first have machines which are at least able to perform manual calculations.
+
+In his 1900 list of unsolved mathematical problems which he considered important \cite{Hilbert1902_MathematicalProblems}, David Hilbert included plenty of statements of the form ``does there exist an algorithm to solve \emph{X}?'', where ``\emph{X}'' could be replaced by ``a general Diophantine equation'' or ``a partial differential equation (of a certain kind)'' and so on. Going even further, in 1928, Hilbert and Ackermann \cite[p.~119]{Hilbert1967} posed the \emph{Entscheidungsproblem} (\emph{decision problem}), which asked for the construction of an algorithm that could determine (in a finite number of steps) whether a given proposition in first-order logic can be deduced (or disproved) starting from a set of axioms.
+
+In order to solve this problem, mathematicians had to introduce \emph{models of computation}, which provided a clear meaning to the property of being ``(effectively) computable''.
+
+\subsection{Turing Machines}
+
+The model which we are going to define in the sequel, which closely resembles the way modern computers work, is based on Alan Turing's seminal paper from 1936 \cite{Turing1936}. Our presentation is inspired by the original paper as well as the more streamlined, modern definition given in \cite{Homer2011}.
+
+\subsubsection{Formal definition}
+
+\begin{definition}
+A \emph{Turing machine} is a tuple \(T = \left(\Gamma, \Sigma, B, Q, \delta, q_0, q_{\text{accept}}, q_{\text{reject}}\right)\), where \(\Gamma\) is a finite tape alphabet, \(\Sigma \subseteq \Gamma \setminus \Set{ B }\) is the input alphabet, \(B\) is the blank symbol, \(Q\) is a finite set of states of the machine, \(\delta \colon Q \setminus \Set{ q_{\text{accept}}, \, q_{\text{reject}} } \times \Gamma \to Q \times \Gamma \times \Set{ \text{left}, \text{right} }\) is the transition function, \(q_0\) is the initial state and \(q_{\text{accept}}\) and \(q_{\text{reject}}\) are the initial, respectively final state.
+\end{definition}
+
+The Turing machine consists of a \emph{finite control}, often represented as a (finite) graph where the states \(Q\) are the nodes, the \emph{transition function} \(\delta\) describes the edges between the nodes and how the machine acts when going from one \emph{state} to the next, while \(q_0\), \(q_{\text{accept}}\) and \(q_{\text{reject}}\) are special nodes.
+
+While not part of the definition above, the machine is also envisioned to be equipped with a read/write \emph{head} attached to an (infinite) \emph{tape}, which acts as memory. The tape is a countably infinite sequence of symbols from \(\Gamma\), i.e.\ an element of \(\Gamma^{\integers}\). Initially, the tape is assumed to be filled with \emph{blanks} (represented by the \(B\) symbol).
+
+\begin{figure}[htb]
+    \centering
+    \begin{tikzpicture}
+        \tikzstyle{every path}=[very thick]
+        
+        \edef\sizetape{0.7cm}
+        \tikzstyle{tmtape}=[draw,minimum size=\sizetape]
+        \tikzstyle{tmhead}=[arrow box,draw,minimum size=.5cm,arrow box
+        arrows={east:.25cm, west:0.25cm}]
+        
+        %% Draw TM Finite Control
+        \begin{scope}
+            % Vertices
+            \begin{scope}[
+                every node/.style={circle,thick,draw}
+            ]
+                \node (q_0) at (0,0) {\(q_0\)};
+                \node (q_1) at (1.5,0) {\(q_1\)};
+                \node (q_2) at (0.5,-1.5) {\(q_2\)};
+                \node (q_3) at (3,0) {\(q_3\)};
+                \node (q_4) at (2,-1.5) {\(q_4\)};
+            \end{scope}
+
+            \node (q_5) at (3.5,-1.5) {...};
+    
+            % Edges
+            \path [->] (q_0) edge node {} (q_1);
+            \path [->] (q_1) edge node {} (q_3);
+            \path [->] (q_1) edge node {} (q_2);
+            \path [->] (q_2) edge node {} (q_4);
+            \path [->] (q_4) edge node {} (q_3);
+            \path [->] (q_4) edge node {} (q_5);
+            
+            \node[
+                rounded corners=0.5cm,draw=black,thick,fit=(q_0) (q_1) (q_2) (q_3) (q_4) (q_5),
+                label=above:\textbf{Finite Control}
+            ] (fsbox) {};
+        \end{scope}
+        
+        %% Draw TM tape
+        \begin{scope}[
+            shift={(5.5cm,0)},
+            start chain=1 going right,
+            node distance=-0.15mm
+        ]
+            \node [on chain=1,tmtape,draw=none] {$\ldots$};
+            \node [on chain=1,tmtape] {};
+            \node [on chain=1,tmtape,label=above:{\textbf{Input/Output Tape}}] (input) {a};
+            \node [on chain=1,tmtape] {a};
+            \node [on chain=1,tmtape] {};
+            \node [on chain=1,tmtape] {};
+            \node [on chain=1,tmtape] {};
+            \node [on chain=1,tmtape,draw=none] {$\ldots$};
+        \end{scope}
+        
+        %% Draw TM head below (input) tape cell
+        \node [tmhead,yshift=-0.3cm] at (input.south) (head) {\(q_1\)};
+        
+        %% Link Finite Control with Head
+        \path[->,draw] (fsbox.east) .. controls (4,-0.5) and (5,-3) .. node[right] 
+        			(headlinetext)
+         			{} 
+        			(head.south);
+        \node[xshift=2cm,yshift=-1cm] at (headlinetext)  
+        			{\textbf{Read/Write Head}};
+        
+    \end{tikzpicture}
+    \caption{Graphical representation of a Turing machine. \\
+    {\small Based on \cite{Sardina2012_TM}}}
+\end{figure}
+
+\subsubsection{Behavior}
+
+Computation on a Turing machine proceeds in the following way:
+\begin{itemize}
+    \item The input to be processed, if any, is encoded using the finite alphabet and written on the tape, starting from index \(0\).
+
+    \item The machine starts with its \emph{head} on the tape at index \(0\) and is assumed to be in the state \(q_0\).
+
+    \item While the machine is not in a terminal state, \(q_{\text{accept}}\) or \(q_{\text{reject}}\):
+    \begin{itemize}
+        \item Read the symbol from the tape at the machine's head current position.
+        
+        \item Using the transition function \(\delta\) and the value of the current state, determine the new state to transition to, the symbol to write on the tape at the current position and the direction (left or right) in which to move the head, and proceed accordingly.
+    \end{itemize}
+
+    \item Once the machine is in a terminal state, \emph{accept} the input if the current state is \(q_{\text{accept}}\) or reject it if the current state is \(q_{\text{reject}}\).
+\end{itemize}
+
+Note that we have no guarantee that the inner loop ever terminates; a Turing machine could move along the tape forever, without reaching the accept or reject state. We are going to come back to this point later.
+
+\subsubsection{Universality}
+
+Turing showed that every such machine, while being capable of operating on inputs of arbitrary length and for a possibly infinite number of steps, could still be represented as a string of finite size. This method was inspired by Kurt Gödel's proof of the famous incompleteness theorems a few years earlier \cite{Gödel1931}.
+
+The core observation is that everything in a Turing machine's definition is finite: the tape alphabet, the set of states, the transition function (when viewed as a relationship, it must be contained within \(Q^2 \times \Gamma^2 \times \Set{ \text{left}, \text{right} }\)). Introducing some conventions, we obtain a textual description of the machine. 
+
+\begin{proposition}
+Every Turing machine can be completely described by a string over a fixed finite alphabet, the \emph{standard description} of the Turing machine.
+\end{proposition}
+
+Nothing prevents us from taking this encoding of a computing machine and providing it as input to another one. In fact, Turing showed that it is possible to construct an \emph{universal Turing machine} which, when run on a tape containing the standard description of another Turing machine and an input string, will simulate the execution of the encoded program and generate whatever output it would've produced on the given input.
+
+
+% TODO: learn more about the halting problem
+% See this Computerphile video: https://www.youtube.com/watch?v=macM_MtS_w4
+
+% TODO: see what the busy beaver thing is
+% Wikipedia page: https://en.wikipedia.org/wiki/Busy_beaver
+% Computerphile video: https://www.youtube.com/watch?v=CE8UhcyJS0I
+
+Besides defining this model of computation, Turing also had some early ideas about the possibility of building machines that think, a sort of a ``digital brain'' \cite{Turing1951_IntelligentMachineryLecture, Turing1951_CanDigitalComputersThink}. However, he was correct in predicting that it would take many years and many increases in computational power in order to achieve such an objective.
+
+\subsection{Complexity Theory}
+
+While the Turing machine model is useful for describing what \emph{can} be computed, in practice we are also interested in \emph{how quickly} can the result be obtained, as well as \emph{how much memory} will be required for any intermediate calculations. These questions form the basis of \emph{computational complexity theory}, which we will discuss in this section. One of the earliest papers analysing these notions using the Turing machine model is \cite{Hartmanis1965}, which also proved some fundamental results of the field.
+
+\begin{definition}
+The \emph{time complexity} of a Turing machine is a function describing the number of transitions it takes for the machine to reach a final state, given an input of length \(n\).
+\end{definition}
+
+\begin{definition}
+The \emph{space complexity} of a Turing machine is a function describing the number of tape cells it will modify before reaching its final state, given an input of length \(n\).
+\end{definition}
+
+\begin{remark*}
+These definitions only makes sense if we assume that a given Turing machine halts on all of its inputs.
+\end{remark*}
+
+It is often inconvenient to give an explicit expression for a Turing machine's time or space complexity. Instead, we are more interested in its \emph{asymptotic complexity}, i.e.\ the order of growth of the time/space requirement.
+
+Mathematicians use the \(\bigO\) (``big-oh'') notation for this purpose.
+
+\begin{definition}
+We say that the function \(f \colon \naturals \to \naturals\) is in \(\bigO(g)\) for some \(g \colon \naturals \to \naturals\) if there exists \(n_0 \in \naturals\) and \(M \in \naturals\) such that \(f(n) \leq M g(n)\) for all \(n \geq n_0\).
+\end{definition}
+
+\subsection{The Limits of Computation}
+
+One of the advantages of having a formal theory of computation, and indeed the initial motivation for it, is the possibility to define what computational machines \emph{cannot} do. We are going to introduce the notion of \emph{uncomputability} to describe problems which cannot be solved in finite time by any algorithm, existing or future.
+
+We will start by giving a definition of the concept of \emph{computability}.
+
+\begin{definition}
+A function \(f \colon X \to Y\) is \emph{computable} if there exists a Turing machine that, when given \(x \in X\) as input on its tape, runs for a finite amount of time and leaves the value of \(f(x) \in Y\) on the tape as output.
+\end{definition}
+
+We can also extend this notion to arbitrary sequences of symbols (e.g.\ strings, integers etc.)
+
+\begin{definition}
+A (finite or countably infinite) sequence \(S\) is \emph{computable} if there exists a Turing machine that, when run on an empty tape, produces the given sequence as output, with a \emph{finite} number of steps between the outputting of each successive element in the sequence.
+\end{definition}
+
+It is not immediately clear if there are any sequences which do \emph{not} fit the definition given above. Turing solved the Entscheidungsproblem in the negative by using a \emph{diagonalization argument}: he showed that there cannot exist a computing machine which, when given the standard description of another Turing machine as input, will determine in finite time whether that machine will halt or run forever. This became known in computer science as the \emph{halting problem}.
+
+% TODO: talk more about uncomputability
+% TODO: talk about the practical limit imposed by the loss of Moore's law
+
+\section{Models of Cognition}
+
+In the previous section, we have seen how the notion of \emph{computation} can be defined abstractly, in order to be implemented on machines. We might be tempted to try to define an analogous theory of \emph{cognition}, but so far there is no consensus on a good model of the human mind.
+
+Recent advances in psychology have led to the identification of two different kinds of human thinking \cite{Kahneman2011}: a slow, conscious system, which is capable of logical reasoning; and a fast, intuitive system, used for quick decision-making. This dichotomy neatly reflects the two major historical approaches to artificial intelligence.
+
+Early researchers focused on \emph{symbolic reasoning}, which they thought would be enough in order to construct thinking machines with human-level capabilities \cite{NewelSimon1961}. While \emph{symbolic AI} was very popular in the 60's, it fell out of favor once its limitations were recognized:
+\begin{itemize}
+    \item There is a \emph{combinatorial explosion} of inputs in real-world problems, and trying to find a provably correct output for each one of them would require huge computational resources \cite{Lighthill1973}.
+    \item Many real-life situations call for probabilistic or intuitive reasoning, to which logic systems are ill-adapted.
+    \item It is not clear how to instruct the computer to solve problems which humans handle using tacit knowledge, learned from experience.
+\end{itemize}
+
+Nowadays most of the field has moved on to \emph{sub-symbolic AI}, which is more similar to humans' intuitionistic thinking. The focus is on designing algorithms which are able to extract useful representations from the raw, unstructured data by themselves. The output response is no longer logically deduced from the inputs, but rather statistically generated based on encoded previous experience.
+
+\section{Learning Paradigms}
+
+Modern literature \cite{Goodfellow2016, Mohri2018, RusselNorvig2020} identifies several different kinds of \emph{learning paradigms}. These describe the general context in which learning is to take place (i.e. what kind of data can we assume we have at our disposal) as well as how the outcome of the learning process should be measured. Some of the most important ones are:
+\begin{itemize}
+    \item \emph{Supervised learning}, in which the learning algorithm is given access to a sample of inputs and the corresponding (usually human-labeled) outputs, and must learn to correctly extrapolate and determine the correct output for new, previously-unseen inputs.
+
+    \item \emph{Unsupervised learning}, the scenario in which the learning algorithm is provided only with unlabeled data, from which it must extract information and identify patterns.
+
+    \item \emph{Reinforcement learning}, which is used for training an intelligent agent which can interact with its environment, by acting upon it and receiving feedback from it, in the form of a \emph{reward signal}. 
+\end{itemize}
+Other learning paradigms can be constructed by combining several of the above-mentioned approaches. For example, \emph{semi-supervised learning} \cite{Chapelle2006} consists of initially training a model on a (small) set of labeled data in a supervised manner, then allowing it to continue learning using a (usually much larger) unlabeled data set. \emph{Imitation learning} \cite{Abbeel2004} is used to complement existing approaches in reinforcement learning: the model is first trained using a small set of sample behaviors, usually recorded by a human expert, then proceeds to improve using experience, guided by a reward signal.
+
+\begin{remark*}
+This distinction between different learning strategies hasn't always been made, at least not by using the modern terminology. While I have been unable to pinpoint when exactly were these terms introduced, my research suggests they were widely adopted by the machine learning community by the 1990's.   
+\end{remark*}
+
+\section{Solomonoff's Universal Induction}
+
+One of the first formal theories of learning, more precisely of \emph{inductive inferrence}, was given by the American researcher Ray Solomonoff.
+
+In his two papers from 1964 \cite{Solomonoff1964_PartI, Solomonoff1964_PartII}, Solomonoff considered the problem of predicting the character most likely to follow a given string (over a fixed alphabet). His solution relies on universal Turing machines to construct an \emph{universal prior} probability distribution over all possible strings, which can then be combined with Bayes' rule to predict the most likely continuation of a starting hypothesis. Unfortunately, the resulting distribution will be uncomputable, hence of limited usefulness in practice.
+
+Our exposition of the theory will follow the original papers as well as Rathmanner's and Hutter's modern presentation \cite{Rathmanner2011}.
+
+\subsection{Kolmogorov Complexity}
+
+% TODO: cite Kolmogorov's original paper, describe what he was trying to do
+
+\begin{definition}
+The \emph{Kolmogorov complexity} of a string is the length of the shortest description of a Turing machine which, when run on an UTM with no other input, will produce the given string as its output.
+\end{definition}
+
+\begin{remark*}
+This quantity is also sometimes called ``Solomonoff-Kolmogorov-Chaitin complexity'', since Solomonoff was the first to define it. Kolmogorov gave priority to Solomonoff and made his results known in the Soviet Union, yet the more commonly used form is ``Kolmogorov complexity''.
+\end{remark*}
+
+The Kolmogorov complexity of a string \(w\) with respect to a fixed universal Turing machine \(U\) will be denoted by \(K_{U} \left(w\right)\).
+
+This quantity was studied by Kolmogorov in his attempt to understand the nature of randomness. We can imagine that an apparently non-random string, such as \texttt{aaaa...aaa} would be easy to generate using a Turing machine: just write a loop that prints as many \(a\)s as needed. On the other hand, it might be hard to encode a string such as \texttt{ajtzprnf...qrqwd}. We would have to resort to explicitly programming the Turing machine to print out each character in turn.
+
+We are now going to show that the Kolmogorov complexity of a string doesn't depend (very much) on the choice of universal Turing machine used.
+
+\begin{theorem}[Invariance]
+The Kolmogorov complexity of a string is well-defined up to an additive constant. In other words, for any two universal Turing machines \(U_1\) and \(U_2\), we have
+\[
+    K_{U_1} \left(S\right) = K_{U_2} \left(S\right) + c
+\]
+where \(c \in \integers\) is a constant which depends only on \(U_1\) and \(U_2\).
+\end{theorem}
+\begin{proof}
+Since \(U_2\) is a Turing machine, we can produce a standard description of it (of length \(c\)) and give this to \(U_1\) in order to simulate its execution. Thus, any Turing machine \(T\) which could be run on \(U_2\) can also be run on \(U_1\), simply by including the description of \(U_2\) with it.
+\end{proof}
+
+\subsection{Solomonoff's Theory of Inductive Inference}
+
+Solomonoff's theory is based on two philosophical principles:
+\begin{itemize}
+    \item \emph{Occam's razor}, which states that, given a set of equally likely hypotheses, the simplest explanation is to be preferred.
+    \item \emph{Epicurus' principle of indifference}, which states that, in the absence of evidence in favour of any particular explanation, all of them should be given equal weight.
+\end{itemize}
+
+\subsubsection{The Universal Prior}
+
+Fix an universal Turing machine \(U\) with a finite alphabet \(\Gamma\). In the sequel, by ``string'' we will understand finite ordered sequences of characters from \(\Gamma\). 
+
+\begin{definition}
+The \emph{universal prior} probability of a string \(w\) is
+\[
+    p_U (w) = 2^{- K_U (w)}
+\]
+\end{definition}
+
+\begin{definition}
+The \emph{universal probability} of the string \(w\) is
+\[
+    P_U (w) = \sum_{M \in \symcal{M}_w} 2^{-\abs{M}}
+\]
+where \(\symcal{M}_w\) denotes the set of all Turing machines that, when run on \(U\), generate the string \(w\).
+\end{definition}
+
+% TODO: talk about what inductive inference is trying to do and why it's uncomputable
+
+\begin{comment}
+\section{Language Identification in the Limit}
+
+While it didn't end up having as much of an impact as the other frameworks described in this chapter, one theory of learning worth mentioning is E.\ Mark Gold's \emph{language identification in the limit}, a theory of inductive inference for formal languages introduced in his article from 1967 \cite{Gold1967}.
+
+In order to describe Gold's results, we will have to introduce a few terms coming from the theory of formal languages.
+
+\begin{definition}
+An \emph{alphabet} is a set of characters, usually called \emph{symbols}.
+\end{definition}
+
+\begin{definition}
+A \emph{word} is an ordered sequence of symbols from a given alphabet. 
+\end{definition}
+
+\begin{definition}
+A \emph{language} is a set of words (over a fixed alphabet).
+\end{definition}
+
+Usually, but not always, languages are defined by some common characteristic
+% TODO: describe learner/teacher model
+
+% TODO: give examples of classes which can be learned
+
+% TODO: https://en.wikipedia.org/wiki/Language_identification_in_the_limit}
+\end{comment}
+
+\section{Vapnik–Chervonenkis Theory}
+
+Starting with 1971, the Soviet mathematicians Vladimir Vapnik and Alexey Chervonenkis developed their own theory of learning, based on a statistical perspective. Their initial investigations revolved around the problem of generalization: how good are finite samples at reflecting the true distribution of data?
+
+Besides its theoretical achievements, VC theory eventually also led to the introduction of support vector machines, which are more thoroughly discussed in section \ref{section:support_vector_machines}.
+
+\subsection{Empirical Risk Minimization}
+\label{section:empirical_risk_minimization}
+
+In Vapnik's view \cite{Vapnik1991}, (supervised) learning is a problem of function estimation: given a set of labeled samples, how can we infer a function which best reflects the real distribution of data?
+
+More precisely, suppose we have an input domain \(\symcal{X}\) and a target space \(\symcal{Y}\), with a joint probability distribution \(P(x, y)\) on \(\symcal{X} \times \symcal{Y}\). Let \(L \colon \symcal{Y} \times \symcal{Y} \to \reals\) be a distance, called the \emph{loss function}. Let \(H\) be a set of functions \(h \colon \symcal{X} \to \symcal{Y}\), called the \emph{hypothesis space}.
+
+\begin{definition}
+The \emph{risk} associated with a hypothesis is 
+\[
+    R(h) = \expectedvalue_{(X, Y) \sim P} \left[L\left(h(X), Y\right)\right] = \int L\left(h(x), y\right) \diff \, P(x, y)  
+\]
+\end{definition}
+
+Our goal is to select a hypothesis which minimizes the risk:
+\[
+    h^* = \arginf_{h \, \in \, H} R(h)
+\]
+In practice, we do not know the true distribution \(P\), so computing the real risk is impossible. What we do instead is use the principle of \emph{empirical risk minimization} (ERM). 
+
+\begin{definition}
+Given a sequence of labeled examples \(\left(x_1, y_1\right), \dots, \left(x_n, y_n\right)\), we define the \emph{empirical risk} as
+\[
+    \widehat{R}(h) = \frac{1}{n} \sum_{i = 1}^{n} L\left(h(x_i), y_i\right)
+\]
+\end{definition}
+
+The ERM principle states that we should select the hypothesis minimizing the empirical risk:
+\[
+    \widehat{h} = \arginf_{h \in H} \widehat{R}(h)
+\]
+
+The distance between this hypothesis and the best one \emph{within the hypothesis class \(H\)} is called the \emph{estimation error}, and it is given by
+\[
+    R\left(\widehat{h}\right) - \inf_{h \in H} R(h)
+\]
+What Vapnik and Chervonenkis did is to give a distribution-independent bound for this quantity. We will reproduce this result in the following subsection.
+
+Note however that the best hypothesis within our set might nevertheless be far away from the globally-optimal hypothesis (taken from the set of all measurable functions, for example). We can break up the distance between our empirical risk minimizer and the true risk minimizer into two parts:
+\[
+    R\left(\widehat{h}\right) - R\left(h^*\right) = \left(R\left(\widehat{h}\right) - \inf_{h \in H} R(h)\right) + \left(\inf_{h \in H} R(h) - R\left(h^*\right)\right)
+\]
+The first parenthesis is the estimation error introduced above, while the second part is the so-called \emph{approximation error}. We want to choose classes of hypotheses which allow us to simultaneously minimize both kinds of errors.
+
+\subsection{Law of Large Numbers}
+
+The law of large numbers (see theorem \ref{thm:weak_law_of_large_numbers}) shows that the (empirical) average of a sample of independent and identically distributed random variables will converge to the (theoretical) expected value of the RVs, when the number of variables in the sample tends to infinity. The law provides no guarantees for what happens in finite samples. Vapnik and Chervonenkis managed to derive an uniform bound for the relative frequencies of events in experimental samples.
+
+In the following, let \(\left(\Omega, \symcal{A}, \probability\right)\) be a probability space, \(X \colon \Omega \to \reals\) a random variable and \(C \subseteq \borelsets{\reals}\) a collection of measurable sets.
+
+\begin{definition}
+Denote by \(X^{n}\) the random vector corresponding to i.i.d.\ \emph{samples of size \(n\) from \(X\)}, i.e. the random variable \(X \times \dots \times X \colon \Omega^n \to \reals^n\).
+\end{definition}
+
+\begin{remark*}
+We will denote by \(\left(x_1, \dots, x_n\right)\) realizations of the random vector \(X^n\), i.e. \(X^n(\omega) = \left(x_1, \dots, x_n\right)\) for some \(\omega \in \Omega^n\).
+\end{remark*}
+
+\begin{definition}
+The \emph{relative frequency} of an event \(E\) is
+\[
+    \nu_{E} = \probability_{X} (E) = \probability\left(X^{-1}(E)\right)
+\]
+\end{definition}
+
+\begin{definition}
+The \emph{relative frequency} of an event \(E\) with respect to a sample of size \(n\) is the random variable
+\[
+    \nu_{E, \, n} = \frac{1}{n} \sum_{i = 1}^{n} \symbb{1}_{X_i \, \in \, E}
+\]
+\end{definition}
+
+\begin{remark*}
+We will sometimes abuse notation and write \(\nu_{E, \, n} \left(x_1, \dots, x_n\right)\) for the relative frequency of event \(E\) in the observed sample \(\left(x_1, \dots, x_n\right)\). More precisely,
+\[
+    \nu_{E, \, n} \left(x_1, \dots, x_n\right) = \frac{1}{n} \cdot \abs{\Set{ x_i | x_i \in E }}
+\]
+\end{remark*}
+
+We are interested in how far the observed relative frequency of an event can deviate from the (true) probability of the event. This deviation will be measured by the following random variable.
+
+\begin{definition}
+The \emph{maximum difference over \(C\) between relative frequency and probability} will be denoted by
+\[
+    \pi = \sup_{E \in C} \, \abs{\, \nu_{E, \, n} - \nu(E)}
+\]
+\end{definition}
+
+\begin{remark*}
+Clearly, for any \(E \in C\), the expression \(\abs{\nu_{E, \, n} - \nu(E)}\) is measurable and hence a random variable. However, the supremum of an (uncountable) family of random variables need not be measurable. For the purpose of this discussion, we will assume that \(\pi\) is a random variable; a more in-depth analysis of when this assumption fails to hold can be found in \cite{AdamsNobel2010}.
+\end{remark*}
+
+The numerical bound on the value of \(\pi\) turns out to depend on \(C\), the class of events under consideration. To describe the ``complexity'' of such a class, we will introduce the notion of \emph{shattering}.
+
+\begin{definition}
+The \emph{\(n\)-th shattering coefficient of \(C\)} is the maximum number of different subsets in which a sample of \(n\) points can be divided by intersection with events from the class \(C\). More precisely,
+\[
+    S \left(C, n\right) = \max_{\left(x_1, \dots, x_n\right) \in \reals^n} \abs{\Set{ \Set{x_1, \dots, x_n} \cap E | E \in C }}
+\]
+\end{definition}
+
+\begin{remark*}
+It's easy to see that, for a fixed \(n\), the value of the shattering coefficient is at most \(2^n\); this corresponds to the case where intersections with events from \(C\) are able to separate each and every subset of \(\Set{ x_1, \dots, x_n }\).
+\end{remark*}
+
+We are now ready to state the main theorem of VC theory.
+
+\begin{theorem}[Vapnik \& Chervonenkis, 1971]
+With the notations from above, the following inequality holds:
+\[
+    \probability\left(\pi > \varepsilon\right) \leq 4 \cdot S(C, 2 n) \cdot e^{-n \varepsilon^2 / 8}
+\]
+\end{theorem}
+
+We will not prove this version of the theorem, but rather the one with a weaker bound given in \cite{Devroye1996}. The approach is based on \cite{Pollard1984}, which avoids the use of complicated combinatorial arguments.
+
+\begin{theorem}
+With the notations from above, the following inequality holds:
+\[
+    \probability\left(\pi > \varepsilon\right) \leq 8 \cdot S(C, n) \cdot e^{-n \varepsilon^2/32}
+\]
+\end{theorem}
+
+\begin{proof}
+Let \(X^{2n}\) be a sample of size \(2 n\), \(X^{2n} = \left(X_1, \dots, X_n, X_1', \dots, X_n'\right)\), with \(X_1\), \(\dots\), \(X_n\), \(X_1'\), \(\dots\), \(X_n'\) being i.i.d. random variables. Denote by \(\nu_{E}'\) the relative frequency of the event \(E\) with respect to the variables \(X_1', \dots, X_n'\),
+\[
+    \nu'_{E, \, n} = \frac{1}{n} \sum_{i = 1}^{n} \symbb{1}_{X_i' \, \in \, E}
+\]
+(analogous to the definition of \(\nu_E\))
+
+We will be interested in measuring the maximum difference between the relative frequency of the event \(E\) in the first half of the sample and its relative frequency in the second half of the sample. For this, we define
+\[
+     \quad \rho = \sup_{E \in C} \abs{\nu_{E, \, n} - \nu'_{E, \, n}}
+\]
+
+We claim that
+\[
+    \probability\left(\pi > \varepsilon\right) \leq 2 \, \probability\left(\rho > \frac{\varepsilon}{2}\right)
+\]
+or equivalently that
+\[
+    \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu(E)} > \varepsilon\right) \leq 2 \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu_{E, \, n}'} > \frac{\varepsilon}{2}\right)
+\]
+Take \(F \in C\) such that
+\[
+    \probability\given{\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon}{\sup_{E \in C} \abs{\nu_{E, \, n} - \nu(E)} > \varepsilon} = 1
+\]
+(i.e.\ an event whose relative frequency difference exceeds \(\varepsilon\) almost surely, whenever the supremum of the relative differences exceeds \(\varepsilon\)). The existence of such an \(F\) is guaranteed by theorem \ref{thm:pollard_supremum_of_stochastic_process}. We also deduce that
+\[
+    \probability\left(\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon\right) \geq \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu(E)} > \varepsilon\right)
+\]
+since whenever \(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu(E)} > \varepsilon\) holds, it implies (almost surely) that the inequality \(\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon\) holds as well.
+
+Working further, we obtain
+\[
+    \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu_{E', \, n}} > \frac{\varepsilon}{2}\right) \geq \probability\left(\abs{\nu_{F, \, n} - \nu'_{F, \, n}} > \frac{\varepsilon}{2}\right)
+\]
+since the probability for the supremum over \(C\) must be larger than for any individual event. Now, using the triangle inequality in \(\reals\), we can rewrite the bound as
+\[
+    \probability\left(\abs{\nu_{F, \, n} - \nu'_{F, \, n}} > \frac{\varepsilon}{2}\right)
+    \geq
+    \probability\left(\left(\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon\right) \cap \left(\abs{\nu(F) - \nu_F'} < \frac{\varepsilon}{2}\right)\right)
+\]
+But the last probability can be written as
+\[
+    \expectedvalue_{X_1, \dots, X_n}\left[\symbb{1}_{\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon} \cdot \probability\given{\abs{\nu(F) - \nu'_{F, \, n}} < \frac{\varepsilon}{2}}{X_1, \dots, X_n}\right]
+\]
+The inner conditional probability can be bounded using Chebyshev's inequality (see theorem \ref{thm:chebyshev_inequality}):
+\begin{align*}
+    \probability\given{\abs{\nu(F) - \nu'_{F, \, n}} < \frac{\varepsilon}{2}}{X_1, \dots, X_n}
+    &=
+    1 - \probability\given{\abs{\nu(F) - \nu'_{F, \, n}} \geq \frac{\varepsilon}{2}}{X_1, \dots, X_n} \\[0.5em]
+    &\geq
+    1 - \frac{\nu(F) (1 - \nu(F))}{n \varepsilon^2 / 4}
+    \geq
+    1 - \frac{1}{n \varepsilon^2}
+\end{align*}
+If we assume that \(n \varepsilon^2 \geq 2\) (otherwise, the bound would be trivial), this becomes
+\[
+    \probability\given{\abs{\nu(F) - \nu'_{F, \, n}} < \frac{\varepsilon}{2}}{X_1, \dots, X_n} \geq \frac{1}{2}
+\]
+Going with this estimate back into the expected value, we have
+\begin{align*}
+    &\expectedvalue_{X_1, \dots, X_n}\left[\symbb{1}_{\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon} \cdot \probability\given{\abs{\nu(F) - \nu'_{F, \, n}} < \frac{\varepsilon}{2}}{X_1, \dots, X_n}\right] \\[0.5em]
+    &\quad \geq \expectedvalue_{X_1, \dots, X_n}\left[\symbb{1}_{\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon} \cdot \frac{1}{2}\right]
+    =
+    \frac{1}{2} \, \probability\left(\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon\right)
+\end{align*}
+Putting the inequalities together we obtain
+\begin{align*}
+    \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu_{E', \, n}} > \frac{\varepsilon}{2}\right) &\geq \frac{1}{2} \, \probability\left(\abs{\nu_{F, \, n} - \nu(F)} > \varepsilon\right) \\
+    &\geq \frac{1}{2} \, \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu(E)} > \varepsilon\right)
+\end{align*}
+as claimed initially.
+
+Now we will use a symmetrization trick to get rid of the auxiliary random variables \(X_1', \dots, X_n'\). Let \(\sigma_1, \dots, \sigma_n\) be i.i.d.\ random variables taking values in \(\Set{ -1, +1 }\) with \(\probability\left(\sigma_i = -1\right) = \probability\left(\sigma_i = +1\right) = \frac{1}{2}\), \(\forall i = \overline{1, n}\).
+
+Thanks to the independence of \(X_1, \dots, X_n, X_1', \dots, X_n'\), we can write
+\[
+    \nu_E - \nu'_E = \frac{1}{n} \sum_{i = 1}^{n} \left(\symbb{1}_{E} \left(X_i\right) - \symbb{1}_{E} \left(X_i'\right)\right)
+\]
+Also, the distribution of
+\[
+    \sum_{i = 1}^{n} \left(\symbb{1}_{E} \left(X_i\right) - \symbb{1}_{E} \left(X_i'\right)\right)
+\]
+is the same as the distribution of
+\[
+    \sum_{i = 1}^{n} \sigma_i \cdot \left(\symbb{1}_{E} \left(X_i\right) - \symbb{1}_{E} \left(X_i'\right)\right)
+\]
+Thus
+\begin{align*}
+    \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu(E)} > \varepsilon\right)
+    &\leq
+    2 \probability\left(\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \left(\symbb{1}_{E} \left(X_i\right) - \symbb{1}_{E} \left(X_i'\right)\right)} > \frac{\varepsilon}{2}\right) \\
+    &= 2 \probability\left(\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \cdot \left(\symbb{1}_{E} \left(X_i\right) - \symbb{1}_{E} \left(X_i'\right)\right)} > \frac{\varepsilon}{2}\right)
+\end{align*}
+Taking the union of the events, we obtain
+\begin{gather*}
+    \quad \probability\left(\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \cdot \left(\symbb{1}_{E} \left(X_i\right) - \symbb{1}_{E} \left(X_i'\right)\right)} > \frac{\varepsilon}{2}\right) \\
+    \leq \probability\left(\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \cdot \symbb{1}_E \left(X_i\right)} > \frac{\varepsilon}{4}\right)
+    +
+    \probability\left(\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \cdot \symbb{1}_E \left(X_i'\right)} > \frac{\varepsilon}{4}\right) \\
+    = 2 \probability\left(\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \cdot \symbb{1}_E \left(X_i\right)} > \frac{\varepsilon}{4}\right)
+\end{gather*}
+
+To bound the probability
+\[
+    \probability\left(\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \cdot \symbb{1}_E \left(X_i\right)} > \frac{\varepsilon}{4}\right)
+\]
+we will condition on \(X_1, \dots, X_n\).
+
+Let \(\left(x_1, \dots, x_n\right) \in \reals^n\) be an observed sample. As \(E\) goes through all of the events in \(C\), the number of different vectors of the form \(\left(\symbb{1}_{E} \left(x_1\right), \dots, \symbb{1}_{E} \left(x_n\right)\right)\) cannot exceed \(S(C, n)\) (by definition of the shattering coefficient). Hence, if \(X_1, \dots, X_n\) are fixed, the supremum above is a maximum over a number of random variables which cannot exceed \(S(C, n)\). Taking the union of events again,
+\begin{gather*}
+    \probability\given{\sup_{E \in C} \frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \cdot \symbb{1}_E \left(X_i\right)} > \frac{\varepsilon}{4}}{X_1, \dots, X_n} \\
+    \leq
+    S(C, n) \cdot \sup_{E \in C} \probability\given{\frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \symbb{1}_{E} \left(X_i\right)} > \frac{\varepsilon}{4}}{X_1, \dots, X_n}
+\end{gather*}
+
+For bounding the conditional probability
+\[
+    \probability\given{\frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \symbb{1}_{E} \left(X_i\right)} > \frac{\varepsilon}{4}}{X_1, \dots, X_n}
+\]
+we apply Hoeffding's inequality (see theorem \ref{thm:hoeffdings_inequality}). Thus
+\[
+    \probability\given{\frac{1}{n} \abs{\sum_{i = 1}^{n} \sigma_i \symbb{1}_{E} \left(X_i\right)} > \frac{\varepsilon}{4}}{X_1, \dots, X_n} \leq 2 e^{- n \varepsilon^2 / 32}
+\]
+Going back through all the inequalities and collecting the terms and factors of \(2\), we obtain
+\[
+    \probability\left(\sup_{E \in C} \abs{\nu_{E, \, n} - \nu(E)} > \varepsilon\right) \leq 8 \cdot S(C, n) \cdot e^{-n \varepsilon^2 / 32}
+\]
+as desired.
+\end{proof}
+
+\section{Probably Approximately Correct (PAC) Learning}
+
+Probably approximately correct learning was introduced by Leslie G. Valiant in his 1984 paper \cite{Valiant1984}. It provides an abstract framework for the problem of \emph{efficiently} (in the sense of time complexity) learning to recognize concepts, given a finite set of examples. Our presentation is based on the one given in \cite{Mohri2018}.
+
+\subsection{Basic Theory}
+
+In the following discussion, \(X\) will denote the source domain of our data.
+
+\begin{definition}
+A \emph{target concept} is a function \(c \colon X \to \Set{ 0, 1 }\). It can also be a subset \(Y \subset X\), in which case it is identified with its characteristic function: \(c_Y = \symbb{1}_Y\).
+\end{definition}
+
+\begin{definition}
+A \emph{concept class} \(C\) is a set of concepts.
+\end{definition}
+
+\begin{definition}
+A \emph{target distribution} is a probability distribution \(D \colon \Omega \to X\).
+\end{definition}
+
+Just like for VC theory, we will view learning as the problem of function estimation.
+
+\begin{definition}
+A \emph{hypothesis} will be a function \(h \colon X \to \Set{ 0, 1 }\), drawn from a \emph{space of hypotheses} \(H\).
+\end{definition}
+
+We will now define the true and empirical risk, mirroring the definitions from the previous section.
+
+\begin{definition}
+The \emph{true risk} or \emph{true error} or \emph{generalization error} of a hypothesis \(h\), with respect to a concept \(c\) and distribution \(D\), is
+\[
+    R \left(h\right) = \probability_{D} \left(h(x) \neq c(x)\right) = \expectedvalue_{D} \left[\chi_{h(x) \, \neq \, c(x)}\right]
+\]
+where \(\chi\) denotes the indicator function of the respective set.
+\end{definition}
+
+\begin{definition}
+The \emph{empirical risk} or \emph{empirical error} of a hypothesis \(h\), with respect to a concept \(c\) and a sample \(S = \Set{ x_1, \dots, x_m }\) drawn from the distribution \(D\), is
+\[
+    \widehat{R}_S \left(h\right) = \frac{1}{m} \sum_{i = 1}^{m} \, \chi_{h(x_i) \, \neq \, c(x_i)}
+\]
+\end{definition}
+
+\begin{definition}
+\label{def:pac_learnable}
+
+A concept class \(C\) is \emph{PAC-learnable} if there exists an algorithm \(A\) such that, for all concepts \(c \in C\), \(\varepsilon > 0\), \(\delta > 0\) and all distributions \(D\), we have
+\[
+    \probability_{D} \left(R\left(h\right) \leq \varepsilon\right) \geq 1 - \delta
+\]
+where \(h\) is the hypothesis selected by the algorithm given a sample \(S\) of size \(m = P\left(1/\varepsilon, 1/\delta\right)\), for some fixed polynomial \(P\).
+\end{definition}
+
+\begin{remark*}
+The definition above is for what would nowadays be called \emph{distribution-free PAC-learnability}, since we require the algorithm to be agnostic with respect to the distribution of the training data. Stronger results can be obtained by imposing additional restrictions on the distribution \(D\) (for example, see \cite{Denis1997} or \cite{Cullina2018}).
+\end{remark*}
+
+Based on this definition, we would say that the hypothesis produced by the learning algorithm is \emph{approximately correct} (the risk is bounded by \(\varepsilon\)) with \emph{high probabilty} (greater than \(1 - \delta\)), whence the name of the theory: \emph{probably approximately correct}.
+
+In practice, we require not only that our learning algorithm be \emph{sample efficient} (number of samples required depends polynomially on the desired accuracy and certainty), but also \emph{computationally efficient}. This leads us to the following definition.
+
+\begin{definition}
+A concept class \(C\) is called \emph{efficiently PAC-learnable} if the algorithm \(A\) in the definition above runs in \(\bigO\left(P\left(1/\varepsilon, 1/\delta\right)\right)\) time.
+\end{definition}
+
+% TODO: describe what PAC learning is about
+% Refer to this summary: https://cs.nyu.edu/~mohri/mls/ml_learning_with_finite_hypothesis_sets.pdf
+% or all the details in the Foundations of Machine Learning book
+
+% TODO: maybe try to include the following quote from Leslie G. Valiant:
+% "The question is whether beyond learning there’s something fundamental to cognition or whether cognition is just learning with various heuristics added. We don’t know. I think that’s a good question."
+% from https://amturing.acm.org/pdf/ValiantTuringTranscript.pdf
+
+% TODO: prove equivalence between a concept class being PAC-learnable and having finite VC dimension: https://dl.acm.org/doi/10.1145/76359.76371
+
+\subsection{Boosting}
+
+Sometimes, in practice, we are only able to produce hypotheses with high confidence (small \(\delta\)) at the cost of low accuracy (big \(\varepsilon\)). It turns out that even in this case, we can combine multiple such learners in order to obtain one with better accuracy.
+
+\begin{definition}
+A concept class \(C\) is \emph{strongly PAC-learnable} if it's PAC-learnable according to definition \ref{def:pac_learnable}, from the previous subsection.
+\end{definition}
+
+\begin{definition}
+A concept class \(C\) is \emph{\(\gamma\)-weakly PAC-learnable} for some \(\gamma > 0\) if there exists an algorithm \(A\) such that, for all concepts \(c \in C\), \(\delta > 0\) and all distributions \(D\), we have
+\[
+    \probability_D \left(R(h) < 0.5 - \gamma\right) \geq 1 - \delta
+\]
+where \(h\) is the hypothesis selected by the algorithm given a sample \(S\) of size \(m = P(1/\delta)\), for some fixed polynomial \(P\).
+\end{definition}
+
+Rob Schapire proved \cite{Schapire1990} in 1990 that \(\gamma\)-weak learnability is equivalent to strong learnability under the PAC framework. The trick is to take advantage that the weak learning algorithm produces a (weak) hypothesis \emph{for any distribution \(D\)}. Boosting algorithms construct different distributions in order to obtain better accuracy.
+
+While the boosting method used in the initial proof isn't very useful in practice, concrete implementations of the idea do exist. One of these is the AdaBoost algorithm \cite{Freund1995}, for which Freund and Schapire were awarded the Gödel prize in 2003.
+
+We will follow the exposition from \cite{Schapire2018}. The high-level overview of the AdaBoost algorithm is:
+\begin{itemize}
+    \item Start with a sample \(\left(x_1, y_1\right), \dots, \left(x_m, y_m\right)\) and define the initial distribution \(D_1 (i) = 1/m\), \(\forall i = \overline{1, m}\).
+
+    \item For \(t = 1, 2, ..., T\) iterations, repeat the following steps:
+    \begin{enumerate}
+        \item Use the weak learning algorithm on the distribution \(D_t\) to obtain the weak hypothesis \(h_t \colon X \to \Set{ -1, 1 }\).
+
+        \item Compute the generalization error of \(h_t\) with respect to the current distribution: \(\symrm{err}_t = \expectedvalue_{D_t} \left[\chi_{h(x) \, \neq \, c(x)}\right]\).
+
+        \item Define the weighting factor \(\alpha_t = \frac{1}{2} \ln \left(\frac{1 - \symrm{err}_t}{\symrm{err}_t}\right)\).
+
+        \item Construct a new probability distribution:
+        \[
+            D_{t + 1} (i) = \frac{D_t (i) \cdot e^{- \alpha_t h_t(x_i) y_i}}{\sum_{j = 1}^{m} D_t (j) \cdot e^{- \alpha_t h_t (x_j) y_j}}
+        \]
+    \end{enumerate}
+
+    \item The strong hypothesis produced by the boosting algorithm is
+    \[
+        h(x) = \symrm{sign} \left(\sum_{t = 1}^{T} \alpha_t h_t (x)\right)
+    \]
+\end{itemize}
+
+What we have not shown yet is that the proposed algorithm generates a strong hypothesis, in the PAC-learnable sense. The full proof of this statement is rather involved and can be found in \cite{Schapire2018}.
+
+% TODO: read https://en.wikipedia.org/wiki/Boosting_(machine_learning)
+% and https://en.wikipedia.org/wiki/Gradient_boosting
+
+% Strength of weak learnability: https://link.springer.com/content/pdf/10.1023/A:1022648800760.pdf
+
+% Arcing the edge, paper introducing gradient boosting: https://statistics.berkeley.edu/sites/default/files/tech-reports/486.pdf
+
+\section{Markov Decision Processes}
+
+The theories described previously mostly focus on the problem of learning in a \emph{supervised} setting. We are given a sample of training examples and we have to learn to predict the correct output for new input data.
+
+The fundamental model for an intelligent agent interacting with its environment, used in reinforcement learning and stochastic control theory, is that of a \emph{Markov decision process}, which will be described below. An excellent reference for this framework is \cite{RusselNorvig2020}.
+
+\begin{definition}
+A \emph{Markov decision process} consists of:
+\begin{itemize}
+    \item a \emph{set of states} \(S\);
+    \item an initial state \(s_0\);
+    \item a \emph{set of actions} available in each state \(A_s\) (the set of all the possible actions will be denoted \(A = \bigsqcup_{s \in S} A_s\));
+    \item a \emph{transition function} \(P \colon S \times A \times S \to [0, 1]\), such that \(P (s, a, s')\) indicates the probability of transitioning to state \(s'\) after performing action \(a\) in state \(s\);
+    \item a \emph{reward function} \(R \colon S \times A \times S \to \reals\), such that \(R (s, a, s')\) indicates the reward received after performing action \(a\) in state \(s\) and transitioning to the state \(s'\).
+\end{itemize}
+\end{definition}
+
+The states capture all of the information about the world at a given time. The agent starts in an initial state and must then perform a series of actions which maximize its future cumulative reward. The ``Markov'' adjective has been added to this model because the transition function is assumed to be a Markov chain:
+\[
+    \probability\given{s_{t + 1} = s'}{a, s_t, s_{t-1}, \dots, s_{1}} = \probability\given{s_{t + 1} = s'}{a, s_t}
+\]
+In other words, the state of the world at the next timestep depends only on the current state of the world and on the agent's action. Knowledge of the previous evolution of the states provides no additional information.

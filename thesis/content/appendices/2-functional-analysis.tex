@@ -1,0 +1,125 @@
+\chapter{Functional Analysis}
+
+A good reference for functional analysis is the classic book \cite{ReedSimon1972}.
+
+\begin{definition}[Topology]
+A \emph{topology} on a set \(X\) is a collection of subsets \(\tau \subseteq \powerset{X}\) such that the following hold:
+\begin{itemize}
+    \item the empty set \(\emptyset\) and \(X\) itself are in \(\tau\);
+    \item \(\tau\) is closed under arbitrary unions: for any index set \(I\) and any \(\left(U_i\right)_{i \in I}\) such that \(U_i \in \tau\) for any \(i \in I\), we have \(\bigcup_{i \in I} U_i \in \tau\);
+    \item \(\tau\) is closed under finite intersections: for any \(U_1, \dots, U_n \in \tau\), we have \(\bigcap U_i \in \tau\).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Topological space]
+A \emph{topological space} is a set \(X\) together with a topology \(\tau\) on it.
+\end{definition}
+
+\begin{definition}[Neighborhood]
+Given a topological space \(\left(X, \tau\right)\), a \emph{neighborhood} of the point \(x \in X\) is any set \(U \in \tau\) which contains \(x\).
+\end{definition}
+
+\begin{definition}[Continuity at a point]
+A function \(f \colon \left(X, \tau_X\right) \to \left(Y, \tau_Y\right)\) between two topological spaces is called \emph{continuous} at some point \(x\) if, for any neighborhood \(V \in \tau_Y\) of \(f(x)\), there exists a neighborhood \(U \in \tau_X\) such that \(f(U) \subseteq V\).
+\end{definition}
+
+\begin{definition}[Continuous function]
+A function between two topological spaces is called \emph{continuous} if it is continuous at all points.
+\end{definition}
+
+\begin{definition}
+A \emph{topological vector space} is a vector space \(V\) endowed with a topology \(\tau\), such that the vector addition and scalar multiplication maps are continuous.
+\end{definition}
+
+\begin{definition}
+A \emph{continuous linear operator} is a linear map between two topological vector spaces \(\left(V, \tau_V\right)\) and \(\left(W, \tau_W\right)\) which is also continuous.
+\end{definition}
+
+\begin{definition}[Metric space]
+A \emph{metric space} is a set \(X\) equipped with a \emph{distance function} \(d \colon X \times X \to \reals\), satisfying the following three properties:
+\begin{itemize}
+    \item \(d(x, y) \geq 0\), with \(d(x, y) = 0\) if, and only if, \(x = y\);
+    \item \(d(x, y) = d(y, x)\);
+    \item \(d(x, z) \leq d(x, y) + d(y, z)\);
+\end{itemize}
+for any \(x, y, z \in X\).
+\end{definition}
+
+\begin{definition}[Sequence]
+Let \(X\) be a set. A \emph{sequence} in \(X\) is a function \(f \colon \naturals \to X\). Most commonly, it will be written as \(\left(x_n\right)_{n \in \naturals}\).
+\end{definition}
+
+\begin{definition}[Cauchy sequence]
+Let \((X, d)\) be a metric space. The sequence \(\left(x_n\right)_{n \in \naturals}\) is called \emph{Cauchy} if, for any \(\varepsilon > 0\), there exists an \(N_{\varepsilon} \in \naturals\) such that \(d\left(x_i, x_j\right) < \varepsilon\) for any \(i, \, j > N_{\varepsilon}\).
+\end{definition}
+
+\begin{definition}[Convergence]
+Let \((X, d)\) be a metric space. The sequence \(\left(x_n\right)_{n \in \naturals}\) is \emph{convergent to a point \(x \in X\)} if, for any \(\varepsilon > 0\), there exists an \(N_{\varepsilon} \in \naturals\) such that \(d\left(x, x_i\right) < \varepsilon\) for any \(i > N\).
+\end{definition}
+
+\begin{definition}[Complete metric space]
+The metric space \((X, d)\) is called \emph{complete} if every Cauchy sequence is also convergent.
+\end{definition}
+
+\begin{definition}[Normed vector space]
+A \emph{normed vector space} is a vector space \(V\) over a field \(F\) (we can assume it to be either \(\reals\) or \(\complex\)), equipped with a function \(\norm{\cdot} \colon V \to F\) which satisfies the following properties:
+\begin{itemize}
+    \item \(\norm{x} \geq 0\), with equality iff \(x = 0\);
+    \item \(\norm{\lambda x} = \abs{\lambda} \norm{x}\);
+    \item \(\norm{x + y} \leq \norm{x} + \norm{y}\);
+\end{itemize}
+for any \(x, y \in V\) and \(\lambda \in F\).
+\end{definition}
+
+\begin{definition}[Inner product space]
+An \emph{inner product space} is a vector space \(V\) over a field \(F\), equipped with a function \(\innerproduct{\cdot}{\cdot} \colon V \times V \to F\) which satisfies the following properties:
+\begin{itemize}
+    \item \(\innerproduct{x}{y} = \overline{\innerproduct{y}{x}}\);
+    \item \(\innerproduct{a x + b y}{z} = a \innerproduct{x}{z} + b \innerproduct{y}{z}\);
+    \item \(\innerproduct{x}{x} \geq 0\), with equality iff \(x = 0\);
+\end{itemize}
+for any \(x, y, z \in V\) and \(a, b \in F\).
+\end{definition}
+
+\begin{remark*}
+Every inner product also induces a norm, by setting \(\norm{x} \coloneq \innerproduct{x}{x}\).
+\end{remark*}
+
+\begin{definition}[Orthogonal complement]
+The \emph{orthogonal complement} of a vector subspace \(W\) in an inner product space \(V\) is the set
+\[
+    W^{\perp} = \Set{ v \in V | \innerproduct{v}{w} = 0, \forall w \in W }
+\]
+\end{definition}
+
+\begin{definition}[Hilbert space]
+A \emph{Hilbert space} is an inner product space which is also complete with respect to the distance induced by the product.
+\end{definition}
+
+\begin{theorem}[Hilbert projection]
+For every \(x \in H\) and every non-empty closed, convex set \(C \subseteq H\) there exists an unique \(p \in C\) for which minimizes the quantity \(\norm{x - p}\) over \(C\). In other words, \(\norm{x - p} \leq \norm{x - c}\) for all \(c \in C\). The point \(p\) is called the \emph{orthogonal projection} of \(x\) onto \(C\).
+\end{theorem}
+
+\begin{corollary}
+Let \(G\) be a closed vector subspace of \(H\). Then \(H\) can be decomposed as
+\(H = G \oplus G^{\perp}\).
+\end{corollary}
+
+\begin{definition}[Continuous dual space]
+The \emph{continuous dual space} of a Hilbert space \(H\) is the vector space \(H^{\dual}\) consisting of all continuous linear functionals on \(H\).
+\end{definition}
+
+\begin{theorem}[Riesz representation]
+Let \(H\) be a Hilbert space. For every continuous linear functional \(\varphi \in H^{\dual}\), there exists a unique vector \(x \in H\) such that
+\[
+    \varphi(y) = \innerproduct{y}{x}
+\]
+for all \(y \in H\), and the norm of the functional and the vector are the same,
+\[
+    \norm{\varphi}_{H^{\dual}} = \norm{x}_{H}
+\]
+\end{theorem}
+
+\begin{corollary}
+The dual space \(H^{\dual}\) is itself a Hilbert space.
+\end{corollary}
